@@ -86,6 +86,20 @@ void World::executeCommand(const Command& command)
 		}
 		break;
 
+	case CommandType::PUT:
+		if (m_player->put(command.target, command.container))
+		{
+			++m_currTurn;
+		}
+		break;
+
+	case CommandType::TAKE_FROM:
+		if (m_player->takeFrom(command.target, command.container))
+		{
+			++m_currTurn;
+		}
+		break;
+
 	case CommandType::QUIT:
 		std::cout << "You sigh and go back to your desk. Maybe next Friday.\n";
 		m_gameOver = true;

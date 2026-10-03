@@ -15,7 +15,9 @@ class NPC : public Creature
 {
 public:
 
+	void seePlayer();
 	void update();
+
 private:
 	NPCType m_type;
 

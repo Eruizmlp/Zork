@@ -9,7 +9,9 @@ enum class CommandType
 	GO,
 	LOOK,
 	TAKE,
+	TAKE_FROM,
 	DROP,
+	PUT,
 	INVENTORY,
 	QUIT,
 	UNKNOWN
@@ -18,8 +20,9 @@ enum class CommandType
 struct Command
 {
 	CommandType type = CommandType::UNKNOWN;
-	Direction direction = Direction::NORTH;   
-	std::string target;                       // item name for TAKE and DROP
+	Direction direction = Direction::NORTH;   // only meaningful for GO
+	std::string target;                       // item name for TAKE, TAKE_FROM, DROP and PUT
+	std::string container;                    // container name for PUT and TAKE_FROM
 };
 
 // Translates a line typed by the user into a Command 

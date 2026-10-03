@@ -1,5 +1,6 @@
 #include "player.h"
 #include "room.h"
+#include "item.h"
 #include <iostream>
 
 Player::Player(const std::string& name, const std::string& description)
@@ -43,6 +44,7 @@ void Player::look() const
 	}
 }
 
+// Lists what the player carries, including what is inside each container
 void Player::inventory() const
 {
 	if (m_contains.empty())
@@ -55,11 +57,22 @@ void Player::inventory() const
 	for (const Entity* item : m_contains)
 	{
 		std::cout << " " << item->getName();
+
+		const std::list<Entity*>& inside = item->getContains();
+		if (!inside.empty())
+		{
+			std::cout << " (contains:";
+			for (const Entity* content : inside)
+			{
+				std::cout << " " << content->getName();
+			}
+			std::cout << ")";
+		}
 	}
 	std::cout << "\n";
 }
 
-// Picks up an item lying in the current room
+// Picks up an item (in the current room)
 bool Player::take(const std::string& itemName)
 {
 	Room* room = getCurrentRoom();
@@ -95,6 +108,80 @@ bool Player::drop(const std::string& itemName)
 	item->moveTo(room);
 	std::cout << "You drop the " << itemName << ".\n";
 	return true;
+}
+
+// Puts an item the player is carrying inside a container
+bool Player::put(const std::string& itemName, const std::string& containerName)
+{
+	Entity* item = findByName(itemName, EntityType::ITEM);
+	if (item == nullptr)
+	{
+		std::cout << "You don't have any " << itemName << ".\n";
+		return false;
+	}
+
+	Item* container = findContainer(containerName);
+	if (container == nullptr)
+	{
+		std::cout << "There is no " << containerName << " you can put things in.\n";
+		return false;
+	}
+
+	if (item == container)
+	{
+		std::cout << "You can't put the " << itemName << " inside itself.\n";
+		return false;
+	}
+
+	item->moveTo(container);
+	std::cout << "You put the " << itemName << " in the " << containerName << ".\n";
+	return true;
+}
+
+// Takes an item out of a container 
+bool Player::takeFrom(const std::string& itemName, const std::string& containerName)
+{
+	Item* container = findContainer(containerName);
+	if (container == nullptr)
+	{
+		std::cout << "There is no " << containerName << " you can take things from.\n";
+		return false;
+	}
+
+	Entity* item = container->findByName(itemName, EntityType::ITEM);
+	if (item == nullptr)
+	{
+		std::cout << "There is no " << itemName << " in the " << containerName << ".\n";
+		return false;
+	}
+
+	item->moveTo(this);
+	std::cout << "You take the " << itemName << " from the " << containerName << ".\n";
+	return true;
+}
+
+Item* Player::findContainer(const std::string& containerName) const
+{
+	Entity* found = findByName(containerName, EntityType::ITEM);
+
+	const Room* room = getCurrentRoom();
+	if (found == nullptr && room != nullptr)
+	{
+		found = room->findByName(containerName, EntityType::ITEM);
+	}
+
+	if (found == nullptr)
+	{
+		return nullptr;
+	}
+
+	Item* item = static_cast<Item*>(found);
+	if (!item->isContainer())
+	{
+		return nullptr;
+	}
+
+	return item;
 }
 
 void Player::update()

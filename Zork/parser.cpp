@@ -35,10 +35,28 @@ Command Parser::parse(const std::string& line) const
 	}
 	else if (verb == "take" || verb == "get")
 	{
-		if (words.size() >= 2)
+		// take item from container
+		if (words.size() >= 4 && words[2] == "from")
+		{
+			cmd.type = CommandType::TAKE_FROM;
+			cmd.target = words[1];
+			cmd.container = words[3];
+		}
+		// take item
+		else if (words.size() >= 2)
 		{
 			cmd.type = CommandType::TAKE;
 			cmd.target = words[1];
+		}
+	}
+	else if (verb == "put")
+	{
+		// put item in container
+		if (words.size() >= 4 && words[2] == "in")
+		{
+			cmd.type = CommandType::PUT;
+			cmd.target = words[1];
+			cmd.container = words[3];
 		}
 	}
 	else if (verb == "drop")
@@ -65,7 +83,7 @@ std::string Parser::toLower(const std::string& text) const
 	return result;
 }
 
-// Splits a line into words 
+// Splits a line into words
 std::vector<std::string> Parser::split(const std::string& line) const
 {
 	std::vector<std::string> result;
