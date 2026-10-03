@@ -24,30 +24,45 @@ World::~World()
 
 void World::runWorld()
 {
+	printIntro();
+
+	std::string line;
+	while (!isGameOver() && readLine(line))
+	{
+		playTurn(line);
+	}
+
+	printEnding();
+}
+
+void World::printIntro() const
+{
 	std::cout << "It is Friday, 12:50. Your shift ends at 17:00, but you plan to leave at lunch time.\n"
 		<< "Get out of the building without being caught. Type 'quit' to give up.\n\n";
 	m_player->look();
+}
 
-	std::string line;
-	while (!isGameOver())
+bool World::readLine(std::string& line) const
+{
+	std::cout << "\n> ";
+	return static_cast<bool>(std::getline(std::cin, line));
+}
+
+void World::playTurn(const std::string& line)
+{
+	const Command command = m_parser.parse(line);
+
+	const bool usedTurn = tryAction(command);
+	if (usedTurn)
 	{
-		std::cout << "\n> ";
-		if (!std::getline(std::cin, line))
-		{
-			break;
-		}
-
-		Command command = m_parser.parse(line);
-
-		const bool usedTurn = tryAction(command);
-		if (usedTurn)
-		{
-			++m_currTurn;
-			update();
-			checkNPCs();
-		}
+		++m_currTurn;
+		update();
+		checkNPCs();
 	}
+}
 
+void World::printEnding() const
+{
 	if (hasWon())
 	{
 		std::cout << "\nYou made it out. Enjoy your long weekend!\n";
@@ -56,7 +71,7 @@ void World::runWorld()
 	{
 		std::cout << "\n\"Ah, there you are! Do you have five minutes?\" Game over.\n";
 	}
-	else if (m_currTurn >= MAX_TURNS)
+	else if (hasRunOutOfTurns())
 	{
 		std::cout << "\nToo late. Your boss spots you and asks for \"a quick favour\".\n";
 	}
@@ -114,7 +129,16 @@ bool World::tryAction(const Command& command)
 	return false;
 }
 
-//Activates the onPlayerSpotted method of the different NPCs
+// Updates every entity in the world
+void World::update()
+{
+	for (Entity* entity : m_entities)
+	{
+		entity->update();
+	}
+}
+
+// Activates the onPlayerSpotted method of the different NPCs
 void World::checkNPCs()
 {
 	for (NPC* npc : m_npcs)
@@ -126,79 +150,49 @@ void World::checkNPCs()
 	}
 }
 
-void World::addNPC(NPC* npc, Room* startRoom)
-{
-	m_entities.push_back(npc);
-	m_npcs.push_back(npc);
-	npc->moveTo(startRoom);
-}
-
-// Updates every entity in the world
-void World::update()
-{
-	for (Entity* entity : m_entities)
-	{
-		entity->update();
-	}
-}
-
 bool World::hasWon() const
 {
 	return m_player->getLocation() == m_street;
 }
 
+bool World::hasRunOutOfTurns() const
+{
+	return m_currTurn >= MAX_TURNS;
+}
+
 bool World::isGameOver() const
 {
-	return m_gameOver || m_boss->hasCaughtPlayer() || hasWon() || m_currTurn >= MAX_TURNS;
+	return m_gameOver || m_boss->hasCaughtPlayer() || hasWon() || hasRunOutOfTurns();
 }
 
 void World::createWorld()
 {
 	// Rooms
-	m_street = new Room("Street",
+	m_street = addRoom("Street",
 		"A sunny day, and your motorbike is waiting for you.", RoomType::STREET);
-	m_entities.push_back(m_street);
-
-	Room* entrance = new Room("Entrance",
+	Room* entrance = addRoom("Entrance",
 		"Glass doors and a badge reader. Freedom is just a few steps away.", RoomType::ENTRANCE);
-	m_entities.push_back(entrance);
-
-	Room* reception = new Room("Reception",
+	Room* reception = addRoom("Reception",
 		"The heart of the building. Everyone has to walk through here.", RoomType::RECEPTION);
-	m_entities.push_back(reception);
-
-	Room* office = new Room("Office",
+	Room* office = addRoom("Office",
 		"Rows of desks and humming monitors. Some coworkers smile at you; others watch you a little too closely.",
 		RoomType::OFFICE);
-	m_entities.push_back(office);
-
-	Room* cafeteria = new Room("Cafeteria",
+	Room* cafeteria = addRoom("Cafeteria",
 		"Coffee machine, vending machine and a lot of people eating.", RoomType::CAFETERIA);
-	m_entities.push_back(cafeteria);
-
-	Room* bathroom = new Room("Bathroom",
+	Room* bathroom = addRoom("Bathroom",
 		"Quiet, tiled and slightly too cold. A good place to wait.", RoomType::BATHROOM);
-	m_entities.push_back(bathroom);
 
 	// Player
 	m_player = new Player("You", "An employee with a strong desire to leave early.");
 	m_entities.push_back(m_player);
 	m_player->moveTo(office);
 
-	// Items (names in lowercase because of the parser) 
-	Item* badge = new Item("badge", "Your access badge. It opens the glass doors.");
-	m_entities.push_back(badge);
-	badge->moveTo(m_player);
+	// Items (names in lowercase because of the parser)
+	Item* badge = addItem("badge", "Your access badge. It opens the glass doors.", m_player);
+	addItem("backpack", "Your backpack, hanging from your chair.", office, true);
+	addItem("chocolate", "A chocolate bar. Some people would do anything for one.", cafeteria);
 
-	Item* backpack = new Item("backpack", "Your backpack, hanging from your chair.", true);
-	m_entities.push_back(backpack);
-	backpack->moveTo(office);
-
-	Item* chocolate = new Item("chocolate", "A chocolate bar. Some people would do anything for one.");
-	m_entities.push_back(chocolate);
-	chocolate->moveTo(cafeteria);
-
-	//NPCS
+	// NPCs
 	m_boss = new Boss("boss", "Your boss, holding a coffee and looking for someone to give work to.",
 		{ cafeteria, cafeteria, cafeteria, reception, office, reception });
 	addNPC(m_boss, cafeteria);
@@ -209,7 +203,7 @@ void World::createWorld()
 	addNPC(new NPC("marta", "The receptionist. She knows everything and tells nobody.",
 		{ reception }), reception);
 
-	// Add exits to rooms
+	// Exits
 	addExit("corridor", "A corridor leads south to reception.", Direction::SOUTH, office, reception);
 	addExit("corridor", "A corridor leads north to the office.", Direction::NORTH, reception, office);
 
@@ -222,8 +216,30 @@ void World::createWorld()
 	addExit("hall", "A short hall leads south to the entrance.", Direction::SOUTH, reception, entrance);
 	addExit("hall", "The hall leads north back to reception.", Direction::NORTH, entrance, reception);
 
-	
 	addExit("glass doors", "The glass doors lead south to the street.", Direction::SOUTH, entrance, m_street, badge);
+}
+
+Room* World::addRoom(const std::string& name, const std::string& description, RoomType roomType)
+{
+	Room* room = new Room(name, description, roomType);
+	m_entities.push_back(room);
+	return room;
+}
+
+Item* World::addItem(const std::string& name, const std::string& description,
+	Entity* location, bool isContainer)
+{
+	Item* item = new Item(name, description, isContainer);
+	m_entities.push_back(item);
+	item->moveTo(location);
+	return item;
+}
+
+void World::addNPC(NPC* npc, Room* startRoom)
+{
+	m_entities.push_back(npc);
+	m_npcs.push_back(npc);
+	npc->moveTo(startRoom);
 }
 
 void World::addExit(const std::string& name, const std::string& description,
@@ -233,4 +249,3 @@ void World::addExit(const std::string& name, const std::string& description,
 	m_entities.push_back(exit);
 	exit->moveTo(source);
 }
-
