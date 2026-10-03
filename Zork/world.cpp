@@ -158,7 +158,7 @@ bool World::hasWon() const
 
 bool World::isGameOver() const
 {
-	return m_gameOver || hasWon() || m_currTurn >= MAX_TURNS;
+	return m_gameOver || m_boss->hasCaughtPlayer() || hasWon() || m_currTurn >= MAX_TURNS;
 }
 
 void World::createWorld()
