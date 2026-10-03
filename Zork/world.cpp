@@ -37,9 +37,15 @@ void World::runWorld()
 			break;
 		}
 
-		executeCommand(m_parser.parse(line));
-		update();
-		checkNPCs();
+		Command command = m_parser.parse(line);
+
+		const bool usedTurn = tryAction(command);
+		if (usedTurn)
+		{
+			++m_currTurn;
+			update();
+			checkNPCs();
+		}
 	}
 
 	if (hasWon())
@@ -56,7 +62,7 @@ void World::runWorld()
 	}
 }
 
-void World::executeCommand(const Command& command)
+bool World::tryAction(const Command& command)
 {
 	switch (command.type)
 	{
@@ -64,63 +70,48 @@ void World::executeCommand(const Command& command)
 		switch (m_player->move(command.direction))
 		{
 		case MoveResult::MOVED:
-			++m_currTurn;
 			m_player->look();
-			break;
+			return true;
 		case MoveResult::LOCKED:
 			std::cout << "It's locked. You need something to open it.\n";
-			break;
+			return false;
 		case MoveResult::NO_EXIT:
 			std::cout << "You can't go that way.\n";
-			break;
+			return false;
 		}
-		break;
+		return false;
 
 	case CommandType::LOOK:
 		m_player->look();
-		break;
+		return false;
 
 	case CommandType::INVENTORY:
 		m_player->inventory();
-		break;
+		return false;
 
 	case CommandType::TAKE:
-		if (m_player->take(command.target))
-		{
-			++m_currTurn;
-		}
-		break;
+		return m_player->take(command.target);
 
 	case CommandType::DROP:
-		if (m_player->drop(command.target))
-		{
-			++m_currTurn;
-		}
-		break;
+		return m_player->drop(command.target);
 
 	case CommandType::PUT:
-		if (m_player->put(command.target, command.container))
-		{
-			++m_currTurn;
-		}
-		break;
+		return m_player->put(command.target, command.container);
 
 	case CommandType::TAKE_FROM:
-		if (m_player->takeFrom(command.target, command.container))
-		{
-			++m_currTurn;
-		}
-		break;
+		return m_player->takeFrom(command.target, command.container);
 
 	case CommandType::QUIT:
 		std::cout << "You sigh and go back to your desk. Maybe next Friday.\n";
 		m_gameOver = true;
-		break;
+		return false;
 
-	default:
+	case CommandType::UNKNOWN:
 		std::cout << "I don't understand that.\n";
-		break;
+		return false;
 	}
+
+	return false;
 }
 
 //Activates the onPlayerSpotted method of the different NPCs
@@ -242,3 +233,4 @@ void World::addExit(const std::string& name, const std::string& description,
 	m_entities.push_back(exit);
 	exit->moveTo(source);
 }
+

@@ -42,7 +42,9 @@ private:
 	void createWorld();
 	void addExit(const std::string& name, const std::string& description,
 		Direction direction, Room* source, Room* destination, const Entity* key = nullptr);
-	void executeCommand(const Command& command);
+	
+	//Returns true if its a command that advances turn
+	bool tryAction(const Command& command);
 
 
 	void checkNPCs();
