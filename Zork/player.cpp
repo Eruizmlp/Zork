@@ -8,6 +8,32 @@ Player::Player(const std::string& name, const std::string& description)
 {
 }
 
+
+//The player can only walk through an exit of the current room
+MoveResult Player::move(Direction direction)
+{
+	Room* room = getCurrentRoom();
+	if (room == nullptr)
+	{
+		return MoveResult::NO_EXIT;
+	}
+
+	const Exit* exit = room->getExit(direction);
+	if (exit == nullptr)
+	{
+		return MoveResult::NO_EXIT;
+	}
+
+	if (!exit->canPass(this))
+	{
+		return MoveResult::LOCKED;
+	}
+
+	moveTo(exit->getDestination());
+	return MoveResult::MOVED;
+}
+
+
 // Displays everything the player can see
 void Player::look() const
 {

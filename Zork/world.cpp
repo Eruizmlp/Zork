@@ -53,14 +53,18 @@ void World::executeCommand(const Command& command)
 	switch (command.type)
 	{
 	case CommandType::GO:
-		if (m_player->move(command.direction))
+		switch (m_player->move(command.direction))
 		{
+		case MoveResult::MOVED:
 			++m_currTurn;
 			m_player->look();
-		}
-		else
-		{
+			break;
+		case MoveResult::LOCKED:
+			std::cout << "It's locked. You need something to open it.\n";
+			break;
+		case MoveResult::NO_EXIT:
 			std::cout << "You can't go that way.\n";
+			break;
 		}
 		break;
 
@@ -158,21 +162,6 @@ void World::createWorld()
 		"Quiet, tiled and slightly too cold. A good place to wait.", RoomType::BATHROOM);
 	m_entities.push_back(bathroom);
 
-	// Add exits to rooms
-	addExit("corridor", "A corridor leads south to reception.", Direction::SOUTH, office, reception);
-	addExit("corridor", "A corridor leads north to the office.", Direction::NORTH, reception, office);
-
-	addExit("door", "A door leads west to the bathroom.", Direction::WEST, reception, bathroom);
-	addExit("door", "The door leads east back to reception.", Direction::EAST, bathroom, reception);
-
-	addExit("archway", "An archway leads east to the cafeteria.", Direction::EAST, reception, cafeteria);
-	addExit("archway", "The archway leads west back to reception.", Direction::WEST, cafeteria, reception);
-
-	addExit("hall", "A short hall leads south to the entrance.", Direction::SOUTH, reception, entrance);
-	addExit("hall", "The hall leads north back to reception.", Direction::NORTH, entrance, reception);
-
-	addExit("glass doors", "The glass doors lead south to the street.", Direction::SOUTH, entrance, m_street);
-
 	// Player
 	m_player = new Player("You", "An employee with a strong desire to leave early.");
 	m_entities.push_back(m_player);
@@ -190,12 +179,28 @@ void World::createWorld()
 	Item* chocolate = new Item("chocolate", "A chocolate bar. Some people would do anything for one.");
 	m_entities.push_back(chocolate);
 	chocolate->moveTo(cafeteria);
+
+	// Add exits to rooms
+	addExit("corridor", "A corridor leads south to reception.", Direction::SOUTH, office, reception);
+	addExit("corridor", "A corridor leads north to the office.", Direction::NORTH, reception, office);
+
+	addExit("door", "A door leads west to the bathroom.", Direction::WEST, reception, bathroom);
+	addExit("door", "The door leads east back to reception.", Direction::EAST, bathroom, reception);
+
+	addExit("archway", "An archway leads east to the cafeteria.", Direction::EAST, reception, cafeteria);
+	addExit("archway", "The archway leads west back to reception.", Direction::WEST, cafeteria, reception);
+
+	addExit("hall", "A short hall leads south to the entrance.", Direction::SOUTH, reception, entrance);
+	addExit("hall", "The hall leads north back to reception.", Direction::NORTH, entrance, reception);
+
+	// Locked: the badge reader only opens the glass doors if you carry your badge.
+	addExit("glass doors", "The glass doors lead south to the street.", Direction::SOUTH, entrance, m_street, badge);
 }
 
 void World::addExit(const std::string& name, const std::string& description,
-	Direction direction, Room* source, Room* destination)
+	Direction direction, Room* source, Room* destination, const Entity* key)
 {
-	Exit* exit = new Exit(name, description, direction, source, destination);
+	Exit* exit = new Exit(name, description, direction, source, destination, key);
 	m_entities.push_back(exit);
 	exit->moveTo(source);
 }

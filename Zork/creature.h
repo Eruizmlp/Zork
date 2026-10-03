@@ -12,5 +12,5 @@ public:
 	Creature(const std::string& name, const std::string& description);
 
 	Room* getCurrentRoom() const;
-	bool move(Direction direction);
+
 };

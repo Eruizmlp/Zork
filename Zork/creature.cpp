@@ -17,20 +17,3 @@ Room* Creature::getCurrentRoom() const
 
 	return nullptr;
 }
-
-bool Creature::move(Direction direction)
-{
-	Room* room = getCurrentRoom();
-	if (room == nullptr)
-	{
-		return false;
-	}
-
-	Exit* exit = room->getExit(direction);
-	if (exit == nullptr)
-	{
-		return false;
-	}
-
-	return moveTo(exit->getDestination());
-}

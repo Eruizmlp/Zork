@@ -29,6 +29,7 @@ public:
 	Entity* getLocation() const { return m_location; } // Items can be inside creatures or other items (locatiion must work for them
 
 	bool contains(const Entity* entity) const;
+
 	Entity* findByName(const std::string& name, EntityType type) const;
 
 
