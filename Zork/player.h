@@ -1,6 +1,7 @@
 #pragma once
 
 #include "creature.h"
+#include <string>
 
 // The character controlled by the user.
 class Player : public Creature
@@ -10,11 +11,12 @@ public:
 
 	// Describes the current room: name, description, people, items and exits
 	void look() const;
+	void inventory() const;
 
-	//TODO:
-	void talkToNPC() const;
-	void takeItem();
-	void dropItem();
+	bool take(const std::string& itemName); //Puts items in the backpack
+	bool drop(const std::string& itemName);
+
+	// TODO: talk to NPCs, put items inside containers
 
 	void update() override;
 };

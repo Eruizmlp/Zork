@@ -3,6 +3,7 @@
 #include "room.h"
 #include "exit.h"
 #include "player.h"
+#include "item.h"
 #include <iostream>
 
 World::World()
@@ -65,6 +66,24 @@ void World::executeCommand(const Command& command)
 
 	case CommandType::LOOK:
 		m_player->look();
+		break;
+
+	case CommandType::INVENTORY:
+		m_player->inventory();
+		break;
+
+	case CommandType::TAKE:
+		if (m_player->take(command.target))
+		{
+			++m_currTurn;
+		}
+		break;
+
+	case CommandType::DROP:
+		if (m_player->drop(command.target))
+		{
+			++m_currTurn;
+		}
 		break;
 
 	case CommandType::QUIT:
@@ -144,6 +163,19 @@ void World::createWorld()
 	m_player = new Player("You", "An employee with a strong desire to leave early.");
 	m_entities.push_back(m_player);
 	m_player->moveTo(office);
+
+	// Items (names in lowercase because of the parser) 
+	Item* badge = new Item("badge", "Your access badge. It opens the glass doors.");
+	m_entities.push_back(badge);
+	badge->moveTo(m_player);
+
+	Item* backpack = new Item("backpack", "Your backpack, hanging from your chair.", true);
+	m_entities.push_back(backpack);
+	backpack->moveTo(office);
+
+	Item* chocolate = new Item("chocolate", "A chocolate bar. Some people would do anything for one.");
+	m_entities.push_back(chocolate);
+	chocolate->moveTo(cafeteria);
 }
 
 void World::addExit(const std::string& name, const std::string& description,
