@@ -45,6 +45,12 @@
     <ClCompile Include="creature.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="boss.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="snitch.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="exit.h">
@@ -72,6 +78,12 @@
       <Filter>Archivos de origen</Filter>
     </ClInclude>
     <ClInclude Include="creature.h">
+      <Filter>Archivos de origen</Filter>
+    </ClInclude>
+    <ClInclude Include="boss.h">
+      <Filter>Archivos de origen</Filter>
+    </ClInclude>
+    <ClInclude Include="snitch.h">
       <Filter>Archivos de origen</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,24 +1,30 @@
 #pragma once
+
 #include "creature.h"
+#include <string>
+#include <vector>
 
-//AI Creatures roaming through the office
-//TODO: Different types of NPCs: Friendly/snitch/Boss
-enum class NPCType
-{
-	FRIENDLY,
-	SNITCH,
-	BOSS
+class Player;
+class Room;
 
-};
 
 class NPC : public Creature
 {
 public:
+	NPC(const std::string& name, const std::string& description, const std::vector<Room*>& route);
 
-	void seePlayer();
-	void update();
+	// True if the player is in the same room as this NPC
+	bool spottedPlayer(const Player* player) const;
+	
+	virtual void onPlayerSpotted();
+	virtual std::string talk() const;
+
+	void update() override;
+
+protected:
+	void followRoute();
 
 private:
-	NPCType m_type;
-
+	const std::vector<Room*> m_route;
+	size_t m_routeStep = 0;
 };

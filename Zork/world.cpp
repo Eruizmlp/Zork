@@ -4,6 +4,9 @@
 #include "exit.h"
 #include "player.h"
 #include "item.h"
+#include "npc.h"
+#include "boss.h"
+#include "snitch.h"
 #include <iostream>
 
 World::World()
@@ -36,11 +39,16 @@ void World::runWorld()
 
 		executeCommand(m_parser.parse(line));
 		update();
+		checkNPCs();
 	}
 
 	if (hasWon())
 	{
 		std::cout << "\nYou made it out. Enjoy your long weekend!\n";
+	}
+	else if (m_boss->hasCaughtPlayer())
+	{
+		std::cout << "\n\"Ah, there you are! Do you have five minutes?\" Game over.\n";
 	}
 	else if (m_currTurn >= MAX_TURNS)
 	{
@@ -115,6 +123,25 @@ void World::executeCommand(const Command& command)
 	}
 }
 
+//Activates the onPlayerSpotted method of the different NPCs
+void World::checkNPCs()
+{
+	for (NPC* npc : m_npcs)
+	{
+		if (npc->spottedPlayer(m_player))
+		{
+			npc->onPlayerSpotted();
+		}
+	}
+}
+
+void World::addNPC(NPC* npc, Room* startRoom)
+{
+	m_entities.push_back(npc);
+	m_npcs.push_back(npc);
+	npc->moveTo(startRoom);
+}
+
 // Updates every entity in the world
 void World::update()
 {
@@ -180,6 +207,17 @@ void World::createWorld()
 	m_entities.push_back(chocolate);
 	chocolate->moveTo(cafeteria);
 
+	//NPCS
+	m_boss = new Boss("boss", "Your boss, holding a coffee and looking for someone to give work to.",
+		{ cafeteria, cafeteria, cafeteria, reception, office, reception });
+	addNPC(m_boss, cafeteria);
+
+	addNPC(new Snitch("marc", "A coworker who loves telling the boss what everyone does.",
+		{ office, office, reception, reception }, m_boss), office);
+
+	addNPC(new NPC("marta", "The receptionist. She knows everything and tells nobody.",
+		{ reception }), reception);
+
 	// Add exits to rooms
 	addExit("corridor", "A corridor leads south to reception.", Direction::SOUTH, office, reception);
 	addExit("corridor", "A corridor leads north to the office.", Direction::NORTH, reception, office);
@@ -193,7 +231,7 @@ void World::createWorld()
 	addExit("hall", "A short hall leads south to the entrance.", Direction::SOUTH, reception, entrance);
 	addExit("hall", "The hall leads north back to reception.", Direction::NORTH, entrance, reception);
 
-	// Locked: the badge reader only opens the glass doors if you carry your badge.
+	
 	addExit("glass doors", "The glass doors lead south to the street.", Direction::SOUTH, entrance, m_street, badge);
 }
 

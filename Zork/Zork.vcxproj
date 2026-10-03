@@ -128,6 +128,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="boss.cpp" />
     <ClCompile Include="creature.cpp" />
     <ClCompile Include="entity.cpp" />
     <ClCompile Include="exit.cpp" />
@@ -137,9 +138,11 @@
     <ClCompile Include="parser.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="room.cpp" />
+    <ClCompile Include="snitch.cpp" />
     <ClCompile Include="world.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="boss.h" />
     <ClInclude Include="creature.h" />
     <ClInclude Include="entity.h" />
     <ClInclude Include="exit.h" />
@@ -148,6 +151,7 @@
     <ClInclude Include="parser.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="room.h" />
+    <ClInclude Include="snitch.h" />
     <ClInclude Include="world.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

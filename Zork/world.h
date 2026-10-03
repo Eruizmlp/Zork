@@ -7,6 +7,8 @@
 class Entity;
 class Room;
 class Player;
+class NPC;
+class Boss;
 
 // Owns every entity, builds the map and runs the game loop.
 class World
@@ -23,9 +25,10 @@ public:
 private:
 	std::vector<Entity*> m_entities;
 
-	//Easy access to check if the game is finished.
 	Player* m_player = nullptr;
 	Room* m_street = nullptr;
+	std::vector<NPC*> m_npcs; 
+	Boss* m_boss = nullptr;
 
 	// Each action consumes a turn the player must escape before MAX_TURNS
 	int m_currTurn = 0;
@@ -40,6 +43,10 @@ private:
 	void addExit(const std::string& name, const std::string& description,
 		Direction direction, Room* source, Room* destination, const Entity* key = nullptr);
 	void executeCommand(const Command& command);
+
+
+	void checkNPCs();
+	void addNPC(NPC* npc, Room* startRoom);
 
 	void update();
 	bool hasWon() const;
