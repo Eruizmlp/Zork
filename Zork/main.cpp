@@ -3,7 +3,6 @@
 int main()
 {
 	World world;
-
 	world.runWorld();
 
 	return 0;

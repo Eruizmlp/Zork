@@ -5,6 +5,39 @@ Room::Room(const std::string& name, const std::string& description, RoomType roo
 {
 }
 
+// Looks for an exit in this room going in the given direction 
+Exit* Room::getExit(Direction direction) const
+{
+	for (Entity* entity : m_contains)
+	{
+		if (entity->getType() == EntityType::EXIT)
+		{
+			Exit* exit = static_cast<Exit*>(entity);
+			if (exit->getDirection() == direction)
+			{
+				return exit;
+			}
+		}
+	}
+
+	return nullptr;
+}
+
+std::vector<Exit*> Room::getExits() const
+{
+	std::vector<Exit*> allExits;
+
+	for (Entity* entity : m_contains)
+	{
+		if (entity->getType() == EntityType::EXIT)
+		{
+			allExits.push_back(static_cast<Exit*>(entity));
+		}
+	}
+
+	return allExits;
+}
+
 std::vector<Entity*> Room::getCreatures() const
 {
 	std::vector<Entity*> allCreatures;
