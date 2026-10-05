@@ -5,8 +5,6 @@
 #include <string>
 
 class Item;
-class Boss;
-class Snitch;
 
 // Outcome of the player trying to walk in a direction
 enum class MoveResult
