@@ -1,6 +1,8 @@
 #include "player.h"
 #include "room.h"
 #include "item.h"
+#include "boss.h"
+#include "snitch.h"
 #include <iostream>
 
 Player::Player(const std::string& name, const std::string& description)
@@ -183,6 +185,19 @@ bool Player::takeFrom(const std::string& itemName, const std::string& containerN
 
 	item->moveTo(this);
 	std::cout << "You take the " << itemName << " from the " << containerName << ".\n";
+	return true;
+}
+
+bool Player::wait()
+{
+	const Room* room = getCurrentRoom();
+	if (room == nullptr || room->getRoomType() != RoomType::BATHROOM)
+	{
+		std::cout << "You can only wait inside the bathroom.\n";
+		return false;
+	}
+
+	std::cout << "You wait on the toilet.\n";
 	return true;
 }
 

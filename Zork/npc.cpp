@@ -18,7 +18,7 @@ bool NPC::spottedPlayer(const Player* player) const
 }
 
 void NPC::onPlayerSpotted()
-{
+{	
 }
 
 std::string NPC::talk() const

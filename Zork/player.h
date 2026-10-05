@@ -5,6 +5,8 @@
 #include <string>
 
 class Item;
+class Boss;
+class Snitch;
 
 // Outcome of the player trying to walk in a direction
 enum class MoveResult
@@ -32,7 +34,8 @@ public:
 	bool drop(const std::string& itemName);
 	bool put(const std::string& itemName, const std::string& containerName);
 	bool takeFrom(const std::string& itemName, const std::string& containerName);
-
+	bool wait(); //You can only wait on the bathroom
+	
 	// TODO: talk to NPCs
 
 	void update() override;

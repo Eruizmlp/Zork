@@ -104,6 +104,9 @@ bool World::tryAction(const Command& command)
 		m_player->inventory();
 		return false;
 
+	case CommandType::WAIT:
+		return m_player->wait();
+
 	case CommandType::TAKE:
 		return m_player->take(command.target);
 
@@ -138,9 +141,27 @@ void World::update()
 	}
 }
 
-// Activates the onPlayerSpotted method of the different NPCs
+bool World::isPlayerHidden() const
+{
+	const Room* room = m_player->getCurrentRoom();
+	return room != nullptr && room->getRoomType() == RoomType::BATHROOM;
+}
+
 void World::checkNPCs()
 {
+	if (isPlayerHidden())
+	{
+		for (const NPC* npc : m_npcs)
+		{
+			const Room* room = npc->getCurrentRoom();
+			if (room != nullptr && room->getRoomType() == RoomType::RECEPTION)
+			{
+				std::cout << "You hear " << npc->getName() << " in the reception...\n";
+			}
+		}
+		return; 
+	}
+
 	for (NPC* npc : m_npcs)
 	{
 		if (npc->spottedPlayer(m_player))

@@ -26,6 +26,12 @@ Command Parser::parse(const std::string& line) const
 	{
 		cmd.type = CommandType::INVENTORY;
 	}
+
+	else if (verb == "wait" || verb == "z")
+	{
+		cmd.type = CommandType::WAIT;
+	}
+
 	else if (verb == "go")
 	{
 		if (words.size() >= 2 && parseDirection(words[1], cmd.direction))

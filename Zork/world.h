@@ -51,6 +51,7 @@ private:
 
 	void update();
 	void checkNPCs();
+	bool isPlayerHidden() const;
 
 	bool hasWon() const;
 	bool hasRunOutOfTurns() const;

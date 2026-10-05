@@ -13,6 +13,7 @@ enum class CommandType
 	DROP,
 	PUT,
 	INVENTORY,
+	WAIT,
 	QUIT,
 	UNKNOWN
 };
