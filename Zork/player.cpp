@@ -1,8 +1,7 @@
 #include "player.h"
 #include "room.h"
 #include "item.h"
-#include "boss.h"
-#include "snitch.h"
+#include "npc.h"
 #include <iostream>
 
 Player::Player(const std::string& name, const std::string& description)
@@ -223,6 +222,67 @@ Item* Player::findContainer(const std::string& containerName) const
 	}
 
 	return item;
+}
+
+// Asking an NPC for information takes a turn
+bool Player::talkTo(const std::string& npcName) const
+{
+	const NPC* npc = findNPCHere(npcName);
+	if (npc == nullptr)
+	{
+		std::cout << "There is nobody called " << npcName << " here.\n";
+		return false;
+	}
+
+	std::cout << npc->getName() << ": \"" << npc->talk() << "\"\n";
+	return true;
+}
+
+// Gives an item the player has in hand to an NPC in the same room
+bool Player::give(const std::string& itemName, const std::string& npcName)
+{
+	Entity* item = findByName(itemName, EntityType::ITEM);
+	if (item == nullptr)
+	{
+		std::cout << "You don't have any " << itemName << " in your hands.\n";
+		return false;
+	}
+
+	NPC* npc = findNPCHere(npcName);
+	if (npc == nullptr)
+	{
+		std::cout << "There is nobody called " << npcName << " here.\n";
+		return false;
+	}
+
+	if (!npc->receiveItem(item))
+	{
+		std::cout << npc->getName() << " doesn't want the " << itemName << ".\n";
+		return false;
+	}
+
+	std::cout << "You give the " << itemName << " to " << npc->getName() << ".\n";
+
+	std::cout << npc->getName() << ": \"" << npc->talk() << "\"\n";
+	return true;
+}
+
+// Finds an NPC in the current room by name (skipping the player, who is also a CREATURE)
+NPC* Player::findNPCHere(const std::string& npcName) const
+{
+	const Room* room = getCurrentRoom();
+	if (room == nullptr)
+	{
+		return nullptr;
+	}
+
+	Entity* found = room->findByName(npcName, EntityType::CREATURE);
+	if (found == nullptr || found == this)
+	{
+		return nullptr;
+	}
+
+	return static_cast<NPC*>(found);
 }
 
 void Player::update()

@@ -5,6 +5,7 @@
 #include <string>
 
 class Item;
+class NPC;
 
 // Outcome of the player trying to walk in a direction
 enum class MoveResult
@@ -33,11 +34,13 @@ public:
 	bool put(const std::string& itemName, const std::string& containerName);
 	bool takeFrom(const std::string& itemName, const std::string& containerName);
 	bool wait(); //You can only wait on the bathroom
-	
-	// TODO: talk to NPCs
+	bool talkTo(const std::string& npcName) const;
+	bool give(const std::string& itemName, const std::string& npcName);
+
 
 	void update() override;
 
 private:
 	Item* findContainer(const std::string& containerName) const;
+	NPC* findNPCHere(const std::string& npcName) const;
 };

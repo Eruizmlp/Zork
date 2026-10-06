@@ -12,7 +12,10 @@ public:
 		const std::vector<Room*>& route, Boss* boss);
 
 	void onPlayerSpotted() override;
+	std::string talk() const override;
+	bool receiveItem(Entity* item) override;
 
 private:
 	Boss* const m_boss;
+	bool m_isBribed = false;
 };

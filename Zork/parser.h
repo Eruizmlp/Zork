@@ -14,6 +14,8 @@ enum class CommandType
 	PUT,
 	INVENTORY,
 	WAIT,
+	TALK,
+	GIVE,
 	QUIT,
 	UNKNOWN
 };
@@ -22,7 +24,7 @@ struct Command
 {
 	CommandType type = CommandType::UNKNOWN;
 	Direction direction = Direction::NORTH;   // only meaningful for GO
-	std::string target;                       // item name for TAKE, TAKE_FROM, DROP and PUT
+	std::string target;                       // item name for TAKE, TAKE_FROM, DROP and PUT; NPC name for TALK
 	std::string container;                    // container name for PUT and TAKE_FROM
 };
 
@@ -37,3 +39,4 @@ private:
 	std::vector<std::string> split(const std::string& line) const;
 	bool parseDirection(const std::string& word, Direction& direction) const;
 };
+

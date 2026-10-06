@@ -40,7 +40,13 @@ void Boss::update()
 	}
 	else
 	{
+		// Alert route finished: he calms down and goes back to his usual route
 		m_isAlerted = false;
 		m_alertStep = 0;
 	}
+}
+
+std::string Boss::talk() const
+{
+	return "Ah, perfect timing! Do you have five minutes?";
 }

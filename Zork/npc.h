@@ -18,6 +18,7 @@ public:
 	
 	virtual void onPlayerSpotted();
 	virtual std::string talk() const;
+	virtual bool receiveItem(Entity* item);
 
 	void update() override;
 

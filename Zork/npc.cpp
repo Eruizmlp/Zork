@@ -26,6 +26,11 @@ std::string NPC::talk() const
 	return "Hi! Busy day, huh?";
 }
 
+bool NPC::receiveItem(Entity* /*item*/)
+{
+	return false;
+}
+
 void NPC::update()
 {
 	followRoute();

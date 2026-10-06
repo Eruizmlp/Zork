@@ -29,12 +29,13 @@ private:
 
 	Player* m_player = nullptr;
 	Room* m_street = nullptr;
+	Item* m_keys = nullptr;
 	std::vector<NPC*> m_npcs;
 	Boss* m_boss = nullptr;
 
 	// Each action consumes a turn the player must escape before MAX_TURNS
 	int m_currTurn = 0;
-	static const int MAX_TURNS = 15;
+	static const int MAX_TURNS = 20;
 
 	// Set to true by the quit command
 	bool m_gameOver = false;
@@ -48,12 +49,12 @@ private:
 
 	// Returns true if it's a command that advances a turn
 	bool tryAction(const Command& command);
-
 	void update();
 	void checkNPCs();
 	bool isPlayerHidden() const;
 
 	bool hasWon() const;
+	bool isCarrying(const Entity* item) const;
 	bool hasRunOutOfTurns() const;
 	bool isGameOver() const;
 
@@ -65,3 +66,4 @@ private:
 	void addExit(const std::string& name, const std::string& description,
 		Direction direction, Room* source, Room* destination, const Entity* key = nullptr);
 };
+

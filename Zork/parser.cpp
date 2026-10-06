@@ -26,12 +26,25 @@ Command Parser::parse(const std::string& line) const
 	{
 		cmd.type = CommandType::INVENTORY;
 	}
-
 	else if (verb == "wait" || verb == "z")
 	{
 		cmd.type = CommandType::WAIT;
 	}
-
+	else if (verb == "talk")
+	{
+		// talk to npc
+		if (words.size() >= 3 && words[1] == "to")
+		{
+			cmd.type = CommandType::TALK;
+			cmd.target = words[2];
+		}
+		// talk npc
+		else if (words.size() >= 2)
+		{
+			cmd.type = CommandType::TALK;
+			cmd.target = words[1];
+		}
+	}
 	else if (verb == "go")
 	{
 		if (words.size() >= 2 && parseDirection(words[1], cmd.direction))
@@ -65,6 +78,18 @@ Command Parser::parse(const std::string& line) const
 			cmd.container = words[3];
 		}
 	}
+
+	else if (verb == "give")
+	{
+		// give item to npc
+		if (words.size() >= 4 && words[2] == "to")
+		{
+			cmd.type = CommandType::GIVE;
+			cmd.target = words[1];
+			cmd.container = words[3];
+		}
+	}
+
 	else if (verb == "drop")
 	{
 		if (words.size() >= 2)
@@ -141,3 +166,4 @@ bool Parser::parseDirection(const std::string& word, Direction& direction) const
 
 	return false;
 }
+

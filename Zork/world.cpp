@@ -38,7 +38,8 @@ void World::runWorld()
 void World::printIntro() const
 {
 	std::cout << "It is Friday, 12:50. Your shift ends at 17:00, but you plan to leave at lunch time.\n"
-		<< "Get out of the building without being caught. Type 'quit' to give up.\n\n";
+		<< "Grab your motorbike keys and get out of the building without being caught.\n"
+		<< "Type 'quit' to give up.\n\n";
 	m_player->look();
 }
 
@@ -107,6 +108,12 @@ bool World::tryAction(const Command& command)
 	case CommandType::WAIT:
 		return m_player->wait();
 
+	case CommandType::TALK:
+		return m_player->talkTo(command.target);
+
+	case CommandType::GIVE:
+		return m_player->give(command.target, command.container);
+
 	case CommandType::TAKE:
 		return m_player->take(command.target);
 
@@ -159,7 +166,7 @@ void World::checkNPCs()
 				std::cout << "You hear " << npc->getName() << " in the reception...\n";
 			}
 		}
-		return; 
+		return;
 	}
 
 	for (NPC* npc : m_npcs)
@@ -173,7 +180,19 @@ void World::checkNPCs()
 
 bool World::hasWon() const
 {
-	return m_player->getLocation() == m_street;
+	return m_player->getLocation() == m_street && isCarrying(m_keys);
+}
+
+// True if the player has the item in hand or inside something the player carries
+bool World::isCarrying(const Entity* item) const
+{
+	const Entity* holder = item->getLocation();
+	if (holder == m_player)
+	{
+		return true;
+	}
+
+	return holder != nullptr && holder->getLocation() == m_player;
 }
 
 bool World::hasRunOutOfTurns() const
@@ -190,7 +209,7 @@ void World::createWorld()
 {
 	// Rooms
 	m_street = addRoom("Street",
-		"A sunny day, and your motorbike is waiting for you.", RoomType::STREET);
+		"A sunny day. Your motorbike is parked here, but you need its keys to ride away.", RoomType::STREET);
 	Room* entrance = addRoom("Entrance",
 		"Glass doors and a badge reader. Freedom is just a few steps away.", RoomType::ENTRANCE);
 	Room* reception = addRoom("Reception",
@@ -212,10 +231,13 @@ void World::createWorld()
 	Item* badge = addItem("badge", "Your access badge. It opens the glass doors.", m_player);
 	addItem("backpack", "Your backpack, hanging from your chair.", office, true);
 	addItem("chocolate", "A chocolate bar. Some people would do anything for one.", cafeteria);
+	Item* jacket = addItem("jacket", "Your jacket. You hung it in the bathroom this morning.", bathroom, true);
+	m_keys = addItem("keys", "Your motorbike keys.", jacket);
 
 	// NPCs
 	m_boss = new Boss("boss", "Your boss, holding a coffee and looking for someone to give work to.",
-		{ cafeteria, cafeteria, cafeteria, reception, office, reception });
+		{ cafeteria, cafeteria, cafeteria, reception, office, reception },
+		{ reception, entrance, entrance, entrance, reception });
 	addNPC(m_boss, cafeteria);
 
 	addNPC(new Snitch("marc", "A coworker who loves telling the boss what everyone does.",
@@ -238,6 +260,7 @@ void World::createWorld()
 	addExit("hall", "The hall leads north back to reception.", Direction::NORTH, entrance, reception);
 
 	addExit("glass doors", "The glass doors lead south to the street.", Direction::SOUTH, entrance, m_street, badge);
+	addExit("glass doors", "The glass doors lead north back into the building.", Direction::NORTH, m_street, entrance, badge);
 }
 
 Room* World::addRoom(const std::string& name, const std::string& description, RoomType roomType)
@@ -270,3 +293,4 @@ void World::addExit(const std::string& name, const std::string& description,
 	m_entities.push_back(exit);
 	exit->moveTo(source);
 }
+
