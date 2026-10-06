@@ -27,7 +27,7 @@ public:
 	// Describe the current room and the inventory. They don't consume turns!
 	void look() const;
 	void inventory() const;
-	void talkTo(const std::string& npcName) const;
+	void talkTo(const std::string& npcName);
 
 	// Each action returns true if it succeeded. Successful actions consume a turn!
 	bool take(const std::string& itemName);
@@ -43,3 +43,4 @@ private:
 	Item* findContainer(const std::string& containerName) const;
 	NPC* findNPCHere(const std::string& npcName) const;
 };
+

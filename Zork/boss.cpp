@@ -2,9 +2,14 @@
 #include "room.h"
 #include <iostream>
 
-Boss::Boss(const std::string& name, const std::string& description,
-	const std::vector<Room*>& route, const std::vector<Room*>& alertRoute)
-	: NPC(name, description, route), m_alertRoute(alertRoute)
+Boss::Boss(const std::string& name,
+    const std::string& description,
+    const std::vector<Room*>& route,
+    const std::vector<Room*>& alertRoute,
+    const std::vector<Room*>& smokeRoute,
+    Entity* favoriteItem)
+    : NPC(name, description, route, favoriteItem),
+    m_alertRoute(alertRoute), m_smokeRoute(smokeRoute)
 {
 }
 
@@ -28,45 +33,49 @@ void Boss::startAlert(BossState state, const std::vector<Room*>& route)
 	m_activeRoute = route;
 }
 
-void Boss::onPlayerSpotted(const Player* /*player*/)
+void Boss::onPlayerSpotted(const Player* )
 {
 	m_hasCaughtPlayer = true;
 }
 
 void Boss::update()
 {
-	if (m_state == BossState::CALM)
-	{
-		followRoute();
-		return;
-	}
+    // While following a special route (alerted or smoking) he ignores his usual one
+    if (m_state != BossState::CALM)
+    {
+        if (m_reactionTurns > 0)
+        {
+            --m_reactionTurns;
+            return;
+        }
 
-	if (m_reactionTurns > 0)
-	{
-		--m_reactionTurns;
-		return;
-	}
+        if (m_alertStep < m_activeRoute.size())
+        {
+            moveTo(m_activeRoute[m_alertStep]);
+            ++m_alertStep;
+        }
+        else
+        {
+            m_state = BossState::CALM;
+            m_alertStep = 0;
+        }
 
-	if (m_alertStep < m_activeRoute.size())
-	{
-		moveTo(m_activeRoute[m_alertStep]);
-		++m_alertStep;
-	}
-	else
-	{
-		// Route finished: he calms down and goes back to his usual route
-		m_state = BossState::CALM;
-		m_alertStep = 0;
-	}
-}
+        return;
+    }
 
-std::string Boss::describePresence() const
-{
-	if (isAlerted())
-	{
-		return "THE BOSS IS HERE, AND HE IS FURIOUS!";
-	}
-	return NPC::describePresence();
+    // He can't resist his favorite item: if someone left the cigars in his way, he goes outside to smoke
+    Room* room = getCurrentRoom();
+    Entity* favorite = getFavoriteItem();
+
+    if (room != nullptr && favorite != nullptr && room->contains(favorite))
+    {
+        std::cout << "You hear the boss: \"A box of Cuban cigars?! Well, five minutes outside won't hurt...\"\n";
+        favorite->moveTo(this);
+        startAlert(BossState::SMOKING_OUTSIDE, m_smokeRoute);
+        return;
+    }
+
+    followRoute();
 }
 
 std::string Boss::talk() const
@@ -76,4 +85,15 @@ std::string Boss::talk() const
 		return "WHERE DO YOU THINK YOU ARE GOING?!";
 	}
 	return "Ah, perfect timing! Do you have five minutes?";
+}
+
+
+// When alerted, the boss is impossible to miss
+std::string Boss::describePresence() const
+{
+	if (isAlerted())
+	{
+		return "THE BOSS IS HERE, AND HE IS FURIOUS!";
+	}
+	return NPC::describePresence();
 }

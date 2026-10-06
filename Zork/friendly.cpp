@@ -1,13 +1,14 @@
 #include "friendly.h"
 #include "boss.h"
 #include "room.h"
+#include "player.h"
 #include <iostream>
 
 Friendly::Friendly(const std::string& name, const std::string& description,
 	const std::vector<Room*>& route, const std::string& tip, Boss* boss,
-	const Entity* wantedItem, const std::string& secret)
-	: NPC(name, description, route), m_tip(tip), m_boss(boss),
-	m_wantedItem(wantedItem), m_secret(secret)
+	Entity* favoriteItem, const std::string& secret, Entity* giftItem)
+	: NPC(name, description, route, favoriteItem), m_tip(tip), m_boss(boss),
+	m_giftItem(giftItem), m_secret(secret)
 {
 }
 
@@ -21,7 +22,6 @@ void Friendly::onBathroomBlocked(Room* bathroom, int tries)
 	{
 		std::cout << getName() << " shouts: \"I'VE BEEN WAITING FOREVER! I'M TELLING THE BOSS SOMEONE IS HIDING IN THERE!\"\n";
 
-		// The boss comes from this NPC's room (next to the bathroom), checks the bathroom and leaves
 		Room* door = getCurrentRoom();
 		m_boss->search({ door, bathroom, door });
 	}
@@ -29,7 +29,7 @@ void Friendly::onBathroomBlocked(Room* bathroom, int tries)
 
 bool Friendly::receiveItem(Entity* item)
 {
-	if (item == nullptr || item != m_wantedItem)
+	if (item == nullptr || item != getFavoriteItem())
 	{
 		return false;
 	}
@@ -37,6 +37,18 @@ bool Friendly::receiveItem(Entity* item)
 	item->moveTo(this);
 	m_hasGift = true;
 	return true;
+}
+
+
+void Friendly::onTalkedTo(Player* player)
+{
+	if (m_giftItem == nullptr || !contains(m_giftItem))
+	{
+		return;
+	}
+
+	m_giftItem->moveTo(player);
+	std::cout << getName() << " hands you the " << m_giftItem->getName() << ".\n";
 }
 
 std::string Friendly::talk() const
@@ -55,6 +67,8 @@ std::string Friendly::talk() const
 		return answer + " AND GET AWAY FROM THE BATHROOM! THE BOSS KNOWS SOMEONE IS HIDING THERE!";
 	case BossState::GUARDING_ENTRANCE:
 		return answer + " AND RUN! SOMEONE TOLD THE BOSS AND HE'S GUARDING THE ENTRANCE!";
+	case BossState::SMOKING_OUTSIDE:
+		return answer + " The boss went outside to smoke a cigar, right in front of the door. Don't even think about leaving now!";
 	case BossState::CALM:
 		break;
 	}
@@ -102,3 +116,4 @@ bool Friendly::isNextTo(const Room* room) const
 
 	return false;
 }
+

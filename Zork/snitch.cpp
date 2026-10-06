@@ -4,21 +4,41 @@
 #include <iostream>
 
 Snitch::Snitch(const std::string& name, const std::string& description,
-	const std::vector<Room*>& route, Boss* boss, const Entity* suspiciousItem)
-	: NPC(name, description, route), m_boss(boss), m_suspiciousItem(suspiciousItem)
+	const std::vector<Room*>& route, Boss* boss, const std::vector<const Entity*>& suspiciousItems,
+	Entity* favoriteItem)
+	: NPC(name, description, route, favoriteItem), m_boss(boss), m_suspiciousItems(suspiciousItems)
 {
 }
 
 void Snitch::onPlayerSpotted(const Player* player)
 {
-	if (m_isBribed || m_boss->isAlerted() || !player->contains(m_suspiciousItem))
+	if (m_isBribed || m_boss->isAlerted())
 	{
 		return;
 	}
 
-	std::cout << getName() << " notices the " << m_suspiciousItem->getName()
+	const Entity* seenItem = findSuspiciousItem(player);
+	if (seenItem == nullptr)
+	{
+		return;
+	}
+
+	std::cout << getName() << " notices the " << seenItem->getName()
 		<< " in your hands and runs to tell the boss!\n";
 	m_boss->alert();
+}
+
+const Entity* Snitch::findSuspiciousItem(const Player* player) const
+{
+	for (const Entity* item : m_suspiciousItems)
+	{
+		if (player->contains(item))
+		{
+			return item;
+		}
+	}
+
+	return nullptr;
 }
 
 std::string Snitch::talk() const
@@ -32,7 +52,7 @@ std::string Snitch::talk() const
 
 bool Snitch::receiveItem(Entity* item)
 {
-	if (item == nullptr || item->getName() != "chocolate")
+	if (item == nullptr || item != getFavoriteItem())
 	{
 		return false;
 	}
@@ -41,3 +61,4 @@ bool Snitch::receiveItem(Entity* item)
 	m_isBribed = true;
 	return true;
 }
+

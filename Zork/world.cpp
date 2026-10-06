@@ -42,7 +42,7 @@ void World::printIntro() const
 		<< "Your shift doesn't end until 17:00, but you've decided you're leaving early.\n"
 		<< "Lunch ends at " << clockText(MAX_TURNS)
 		<< ", and every action you take costs one minute.\n\n"
-		<< "There's just one problem: you've forgotten your motorbike keys.\n"
+		<< "There's just one problem: you notice you are not carrying your car keys.\n"
 		<< "Find them, get out of the building, and make sure nobody catches you before lunch is over.\n\n"
 		<< "Type 'inventory' to check your watch and see what you're carrying.\n" << "Type 'quit' if you decide it's not worth the risk.\n\n"
 		<< "Type help to know all the commands available.\n\n";
@@ -309,7 +309,8 @@ bool World::isBossNearby() const
 
 bool World::hasWon() const
 {
-	return m_player->getLocation() == m_street && isCarrying(m_keys);
+	// Reaching the street doesn't count if the boss is out there smoking and catches you
+	return m_player->getLocation() == m_street && isCarrying(m_keys) && !m_boss->hasCaughtPlayer();
 }
 
 // True if the player has the item in hand or inside something the player carries
@@ -378,10 +379,13 @@ void World::createWorld()
 	m_player->moveTo(office);
 
 	// Items (names in lowercase, like everything the player types)
-	Item* badge = addItem("badge", "Your access badge. It opens the glass doors.", m_player);
 	Item* backpack = addItem("backpack", "Your backpack, hanging from your chair.", office, true);
-	addItem("chocolate", "A chocolate bar. Some people would do anything for one.", cafeteria);
-	Item* coffee = addItem("coffee", "A cup of coffee, still hot.", cafeteria);
+	Item* badge = addItem("badge", "Your access badge. The glass doors only open if you hold it in your hand.", backpack);
+	Item* chocolate = addItem("chocolate", "A chocolate bar. Some people would do anything for one.", cafeteria);
+	Item* coffee = addItem("coffee", "A cup of coffee from the machine, still hot.", cafeteria);
+
+	// The cigars start nowhere: marta holds them, so the boss cannot find them by himself
+	Item* cigars = addItem("cigars", "A box of cigars addressed to the boss. He can never resist one.", nullptr);
 	Item* jacket = addItem("jacket", "Your jacket. You hung it in the bathroom this morning.", bathroom, true);
 	m_keys = addItem("keys", "Your motorbike keys.", jacket);
 
@@ -389,33 +393,59 @@ void World::createWorld()
 	const std::vector<Room*> bossRoute = { cafeteria, cafeteria, cafeteria, reception,
 		entrance, entrance, entrance, reception, office, office, reception };
 	const std::vector<Room*> bossAlertRoute = { reception, entrance, entrance, entrance, reception };
+	const std::vector<Room*> bossSmokeRoute = { reception, entrance, m_street, m_street, m_street, m_street, entrance, reception };
 	const std::vector<Room*> marcRoute = { office, office, reception, reception };
-	const std::vector<Room*> nuriaRoute = { cafeteria, cafeteria, reception, cafeteria };
+	const std::vector<Room*> nuriaRoute = { cafeteria, cafeteria, cafeteria, cafeteria, cafeteria, reception };
 	const std::vector<Room*> pabloRoute = { reception, bathroom, reception, office, reception, cafeteria, cafeteria };
 
-	// NPCs
-	m_boss = new Boss("boss", "Your boss, holding a coffee and looking for someone to give work to.",
-		bossRoute, bossAlertRoute);
+	// NPC Dialogues
+	const std::string martaDialogue =
+		"Looking for your keys? You hung your jacket in the bathroom this morning. "
+		"And careful: after his coffee, the boss always goes out to the entrance for a smoke. "
+		"Oh, and he left this box of cigars stored here in reception... take it, the smell is driving me crazy! "
+		"If you give it to him, he'll head straight outside to smoke.";
+
+	const std::string lauraDialogue =
+		"Marc is always eyeing everyone's business... but leave a chocolate bar on his desk "
+		"and he suddenly forgets what he was doing.";
+
+	const std::string pabloCoffeeDialogue =
+		"Ah, sweet caffeine... Listen, the badge reader won't pick up your card inside a backpack, "
+		"so hold it out. As for Marc and Nuria? Keep everything else in your bag—if you carry "
+		"items in your hands, they'll think you're packing up to leave early.";
+
+	// NPCs 
+	m_boss = new Boss(
+		"boss",
+		"Your boss, holding a coffee and looking for someone to give work to.",
+		bossRoute, bossAlertRoute, bossSmokeRoute, cigars
+	);
 	addNPC(m_boss, cafeteria);
 
+	// Snitches
 	addNPC(new Snitch("marc", "A coworker who loves telling the boss what everyone does.",
-		marcRoute, m_boss, m_keys), office);
+		marcRoute, m_boss, { m_keys, jacket }, chocolate), office);
 
 	addNPC(new Snitch("nuria", "A coworker who notices everything people carry around.",
-		nuriaRoute, m_boss, backpack), cafeteria);
+		nuriaRoute, m_boss, { backpack, jacket }, chocolate), cafeteria);
 
-	addNPC(new Friendly("marta", "The receptionist. She knows everything and tells nobody.",
-		{ reception }, "Looking for your keys? You hung your jacket in the bathroom this morning. And careful: after his coffee, the boss always goes out to the entrance for a smoke.",
-		m_boss), reception);
+	// Friendly NPCs
+	Friendly* marta = new Friendly(
+		"marta", "The receptionist. She knows everything and tells nobody.",
+		{ reception }, martaDialogue, m_boss, nullptr, "", cigars
+	);
+	addNPC(marta, reception);
+	cigars->moveTo(marta);
 
-	addNPC(new Friendly("laura", "A coworker eating a salad. She can't stand Marc.",
-		{ cafeteria }, "Marc tells the boss everything he sees... but he'd sell his soul for something sweet.",
-		m_boss), cafeteria);
+	addNPC(new Friendly(
+		"laura", "A coworker having lunch. She can't stand Marc.",
+		{ cafeteria }, lauraDialogue, m_boss
+	), cafeteria);
 
-	addNPC(new Friendly("pablo", "The IT guy. He looks like he hasn't slept in days.",
-		pabloRoute, "I'd kill for a coffee right now...", m_boss,
-		coffee, "Thanks! Between us: when someone snitches, the boss guards the entrance for a while and then gives up. Hide in the bathroom and wait."),
-		reception);
+	addNPC(new Friendly(
+		"pablo", "The IT guy. He looks like he hasn't slept in days.",
+		pabloRoute, "I'd kill for a coffee right now...", m_boss, coffee, pabloCoffeeDialogue
+	), reception);
 
 	// Exits
 	addExit("corridor", "A corridor leads south to reception.", Direction::SOUTH, office, reception);
@@ -464,3 +494,4 @@ void World::addExit(const std::string& name, const std::string& description,
 	m_entities.push_back(exit);
 	exit->moveTo(source);
 }
+

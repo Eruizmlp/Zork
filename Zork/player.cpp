@@ -225,9 +225,9 @@ Item* Player::findContainer(const std::string& containerName) const
 }
 
 // Asking an NPC for information doesn't take a turn
-void Player::talkTo(const std::string& npcName) const
+void Player::talkTo(const std::string& npcName)
 {
-	const NPC* npc = findNPCHere(npcName);
+	NPC* npc = findNPCHere(npcName);
 	if (npc == nullptr)
 	{
 		std::cout << "There is nobody called " << npcName << " here.\n";
@@ -235,6 +235,7 @@ void Player::talkTo(const std::string& npcName) const
 	}
 
 	std::cout << npc->getName() << ": \"" << npc->talk() << "\"\n";
+	npc->onTalkedTo(this);
 }
 
 // Gives an item the player has in hand to an NPC in the same room
@@ -287,3 +288,4 @@ NPC* Player::findNPCHere(const std::string& npcName) const
 void Player::update()
 {
 }
+

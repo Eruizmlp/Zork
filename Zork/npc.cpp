@@ -2,8 +2,9 @@
 #include "player.h"
 #include "room.h"
 
-NPC::NPC(const std::string& name, const std::string& description, const std::vector<Room*>& route)
-	: Creature(name, description), m_route(route)
+NPC::NPC(const std::string& name, const std::string& description,
+	const std::vector<Room*>& route, Entity* favoriteItem)
+	: Creature(name, description), m_route(route), m_favoriteItem(favoriteItem)
 {
 }
 
@@ -26,6 +27,10 @@ std::string NPC::describePresence() const
 	return getName() + " is here.";
 }
 
+void NPC::onTalkedTo(Player* /*player*/)
+{
+}
+
 std::string NPC::talk() const
 {
 	return "Hi! Busy day, huh?";
@@ -34,6 +39,11 @@ std::string NPC::talk() const
 bool NPC::receiveItem(Entity* /*item*/)
 {
 	return false;
+}
+
+Entity* NPC::getFavoriteItem() const
+{
+	return m_favoriteItem;
 }
 
 Room* NPC::getNextRoom() const
@@ -76,3 +86,4 @@ void NPC::followRoute()
 void NPC::onBathroomBlocked(Room* /*bathroom*/, int /*tries*/)
 {
 }
+
