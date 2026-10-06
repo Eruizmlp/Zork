@@ -14,7 +14,7 @@ void Boss::alert()
 	m_alertStep = 0;
 }
 
-void Boss::onPlayerSpotted()
+void Boss::onPlayerSpotted(const Player* /*player*/)
 {
 	m_hasCaughtPlayer = true;
 }
@@ -50,3 +50,4 @@ std::string Boss::talk() const
 {
 	return "Ah, perfect timing! Do you have five minutes?";
 }
+

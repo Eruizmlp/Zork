@@ -16,9 +16,12 @@ public:
 	// True if the player is in the same room as this NPC
 	bool spottedPlayer(const Player* player) const;
 	
-	virtual void onPlayerSpotted();
+	virtual void onPlayerSpotted(const Player* player);
 	virtual std::string talk() const;
 	virtual bool receiveItem(Entity* item);
+
+	// Room this NPC will go to next, or nullptr if it has no route
+	Room* getNextRoom() const;
 
 	void update() override;
 

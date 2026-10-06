@@ -224,18 +224,17 @@ Item* Player::findContainer(const std::string& containerName) const
 	return item;
 }
 
-// Asking an NPC for information takes a turn
-bool Player::talkTo(const std::string& npcName) const
+// Asking an NPC for information doesn't take a turn
+void Player::talkTo(const std::string& npcName) const
 {
 	const NPC* npc = findNPCHere(npcName);
 	if (npc == nullptr)
 	{
 		std::cout << "There is nobody called " << npcName << " here.\n";
-		return false;
+		return;
 	}
 
 	std::cout << npc->getName() << ": \"" << npc->talk() << "\"\n";
-	return true;
 }
 
 // Gives an item the player has in hand to an NPC in the same room

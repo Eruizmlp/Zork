@@ -7,6 +7,7 @@
 #include "npc.h"
 #include "boss.h"
 #include "snitch.h"
+#include "friendly.h"
 #include <iostream>
 
 World::World()
@@ -58,6 +59,13 @@ void World::playTurn(const std::string& line)
 	{
 		++m_currTurn;
 		update();
+
+		// The new room is described after the NPCs have moved 
+		if (command.type == CommandType::GO && !hasWon())
+		{
+			m_player->look();
+		}
+
 		checkNPCs();
 	}
 }
@@ -86,7 +94,6 @@ bool World::tryAction(const Command& command)
 		switch (m_player->move(command.direction))
 		{
 		case MoveResult::MOVED:
-			m_player->look();
 			return true;
 		case MoveResult::LOCKED:
 			std::cout << "It's locked. You need something to open it.\n";
@@ -109,7 +116,8 @@ bool World::tryAction(const Command& command)
 		return m_player->wait();
 
 	case CommandType::TALK:
-		return m_player->talkTo(command.target);
+		m_player->talkTo(command.target);
+		return false;
 
 	case CommandType::GIVE:
 		return m_player->give(command.target, command.container);
@@ -173,7 +181,7 @@ void World::checkNPCs()
 	{
 		if (npc->spottedPlayer(m_player))
 		{
-			npc->onPlayerSpotted();
+			npc->onPlayerSpotted(m_player);
 		}
 	}
 }
@@ -236,15 +244,20 @@ void World::createWorld()
 
 	// NPCs
 	m_boss = new Boss("boss", "Your boss, holding a coffee and looking for someone to give work to.",
-		{ cafeteria, cafeteria, cafeteria, reception, office, reception },
+		{ cafeteria, cafeteria, reception, office, office, office, reception },
 		{ reception, entrance, entrance, entrance, reception });
 	addNPC(m_boss, cafeteria);
 
 	addNPC(new Snitch("marc", "A coworker who loves telling the boss what everyone does.",
-		{ office, office, reception, reception }, m_boss), office);
+		{ office, office, reception, reception }, m_boss, m_keys), office);
 
-	addNPC(new NPC("marta", "The receptionist. She knows everything and tells nobody.",
-		{ reception }), reception);
+	addNPC(new Friendly("marta", "The receptionist. She knows everything and tells nobody.",
+		{ reception }, "Looking for your keys? You hung your jacket in the bathroom this morning.",
+		m_boss), reception);
+
+	addNPC(new Friendly("laura", "A coworker eating a salad. She can't stand Marc.",
+		{ cafeteria }, "Marc tells the boss everything he sees... but he'd sell his soul for something sweet.",
+		m_boss), cafeteria);
 
 	// Exits
 	addExit("corridor", "A corridor leads south to reception.", Direction::SOUTH, office, reception);
@@ -293,4 +306,5 @@ void World::addExit(const std::string& name, const std::string& description,
 	m_entities.push_back(exit);
 	exit->moveTo(source);
 }
+
 

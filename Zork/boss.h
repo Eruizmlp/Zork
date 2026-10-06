@@ -3,7 +3,7 @@
 #include "npc.h"
 
 // The boss walks his usual route. When a snitch alerts him, he follows his alert route
-// (to the entrance and back) and then calms down. If he sees the player, game over.
+
 class Boss : public NPC
 {
 public:
@@ -15,7 +15,7 @@ public:
 	bool isAlerted() const { return m_isAlerted; }
 	bool hasCaughtPlayer() const { return m_hasCaughtPlayer; }
 
-	void onPlayerSpotted() override;
+	void onPlayerSpotted(const Player* player) override;
 	std::string talk() const override;
 	void update() override;
 
@@ -30,3 +30,4 @@ private:
 	const std::vector<Room*> m_alertRoute;
 	size_t m_alertStep = 0;
 };
+

@@ -27,6 +27,7 @@ public:
 	// Describe the current room and the inventory. They don't consume turns!
 	void look() const;
 	void inventory() const;
+	void talkTo(const std::string& npcName) const;
 
 	// Each action returns true if it succeeded. Successful actions consume a turn!
 	bool take(const std::string& itemName);
@@ -34,7 +35,6 @@ public:
 	bool put(const std::string& itemName, const std::string& containerName);
 	bool takeFrom(const std::string& itemName, const std::string& containerName);
 	bool wait(); //You can only wait on the bathroom
-	bool talkTo(const std::string& npcName) const;
 	bool give(const std::string& itemName, const std::string& npcName);
 
 

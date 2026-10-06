@@ -17,7 +17,7 @@ bool NPC::spottedPlayer(const Player* player) const
 	return getCurrentRoom() == player->getCurrentRoom();
 }
 
-void NPC::onPlayerSpotted()
+void NPC::onPlayerSpotted(const Player* /*player*/)
 {	
 }
 
@@ -29,6 +29,16 @@ std::string NPC::talk() const
 bool NPC::receiveItem(Entity* /*item*/)
 {
 	return false;
+}
+
+Room* NPC::getNextRoom() const
+{
+	if (m_route.empty())
+	{
+		return nullptr;
+	}
+
+	return m_route[(m_routeStep + 1) % m_route.size()];
 }
 
 void NPC::update()

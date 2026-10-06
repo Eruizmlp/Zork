@@ -1,21 +1,26 @@
 #include "snitch.h"
 #include "boss.h"
+#include "player.h"
 #include <iostream>
 
 Snitch::Snitch(const std::string& name, const std::string& description,
-	const std::vector<Room*>& route, Boss* boss)
-	: NPC(name, description, route), m_boss(boss)
+	const std::vector<Room*>& route, Boss* boss, const Entity* suspiciousItem)
+	: NPC(name, description, route), m_boss(boss), m_suspiciousItem(suspiciousItem)
 {
 }
 
-void Snitch::onPlayerSpotted()
+void Snitch::onPlayerSpotted(const Player* player)
 {
-	if (!m_isBribed && !m_boss->isAlerted())
+	if (m_isBribed || m_boss->isAlerted() || !player->contains(m_suspiciousItem))
 	{
-		std::cout << getName() << " sees you sneaking around and runs to tell the boss!\n";
-		m_boss->alert();
+		return;
 	}
+
+	std::cout << getName() << " notices the " << m_suspiciousItem->getName()
+		<< " in your hands and runs to tell the boss!\n";
+	m_boss->alert();
 }
+
 
 std::string Snitch::talk() const
 {
