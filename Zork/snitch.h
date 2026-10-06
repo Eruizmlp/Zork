@@ -5,7 +5,7 @@
 class Boss;
 
 /*A coworker who warns the boss when he sees the player carrying a suspicious item
- in hand (items inside a container cannot be seen), unless he has been bribed*/ 
+ in hand (items inside a container cannot be seen), unless he has been bribed*/
 
 class Snitch : public NPC
 {
@@ -22,4 +22,3 @@ private:
 	const Entity* const m_suspiciousItem;
 	bool m_isBribed = false;
 };
-

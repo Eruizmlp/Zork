@@ -16,7 +16,6 @@ bool Entity::contains(const Entity* entity) const
 	return std::find(m_contains.begin(), m_contains.end(), entity) != m_contains.end();
 }
 
-
 Entity* Entity::findByName(const std::string& name, EntityType type) const
 {
 	for (Entity* entity : m_contains)
@@ -46,7 +45,6 @@ bool Entity::moveTo(Entity* destination)
 	m_location = destination;
 	return true;
 }
-
 
 void Entity::addEntity(Entity* entity)
 {

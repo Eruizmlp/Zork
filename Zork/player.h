@@ -15,7 +15,7 @@ enum class MoveResult
 	LOCKED
 };
 
-// The character controlled by the user
+
 class Player : public Creature
 {
 public:
@@ -34,9 +34,8 @@ public:
 	bool drop(const std::string& itemName);
 	bool put(const std::string& itemName, const std::string& containerName);
 	bool takeFrom(const std::string& itemName, const std::string& containerName);
-	bool wait(); //You can only wait on the bathroom
+	bool wait(); // You can only wait in the bathroom
 	bool give(const std::string& itemName, const std::string& npcName);
-
 
 	void update() override;
 

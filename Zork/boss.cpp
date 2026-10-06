@@ -1,5 +1,6 @@
 #include "boss.h"
 #include "room.h"
+#include <iostream>
 
 Boss::Boss(const std::string& name, const std::string& description,
 	const std::vector<Room*>& route, const std::vector<Room*>& alertRoute)
@@ -9,9 +10,22 @@ Boss::Boss(const std::string& name, const std::string& description,
 
 void Boss::alert()
 {
-	m_isAlerted = true;
+	std::cout << "From far away you hear the boss: \"WHAT?! NOBODY LEAVES THIS OFFICE BEFORE FIVE!\"\n";
+	startAlert(BossState::GUARDING_ENTRANCE, m_alertRoute);
+}
+
+void Boss::search(const std::vector<Room*>& route)
+{
+	std::cout << "You hear the boss: \"SOMEONE IS HIDING IN THE BATHROOM?! I'M COMING!\"\n";
+	startAlert(BossState::SEARCHING_BATHROOM, route);
+}
+
+void Boss::startAlert(BossState state, const std::vector<Room*>& route)
+{
+	m_state = state;
 	m_reactionTurns = REACTION_TURNS;
 	m_alertStep = 0;
+	m_activeRoute = route;
 }
 
 void Boss::onPlayerSpotted(const Player* /*player*/)
@@ -21,7 +35,7 @@ void Boss::onPlayerSpotted(const Player* /*player*/)
 
 void Boss::update()
 {
-	if (!m_isAlerted)
+	if (m_state == BossState::CALM)
 	{
 		followRoute();
 		return;
@@ -33,21 +47,33 @@ void Boss::update()
 		return;
 	}
 
-	if (m_alertStep < m_alertRoute.size())
+	if (m_alertStep < m_activeRoute.size())
 	{
-		moveTo(m_alertRoute[m_alertStep]);
+		moveTo(m_activeRoute[m_alertStep]);
 		++m_alertStep;
 	}
 	else
 	{
-		// Alert route finished: he calms down and goes back to his usual route
-		m_isAlerted = false;
+		// Route finished: he calms down and goes back to his usual route
+		m_state = BossState::CALM;
 		m_alertStep = 0;
 	}
 }
 
-std::string Boss::talk() const
+std::string Boss::describePresence() const
 {
-	return "Ah, perfect timing! Do you have five minutes?";
+	if (isAlerted())
+	{
+		return "THE BOSS IS HERE, AND HE IS FURIOUS!";
+	}
+	return NPC::describePresence();
 }
 
+std::string Boss::talk() const
+{
+	if (isAlerted())
+	{
+		return "WHERE DO YOU THINK YOU ARE GOING?!";
+	}
+	return "Ah, perfect timing! Do you have five minutes?";
+}

@@ -16,6 +16,7 @@ enum class CommandType
 	WAIT,
 	TALK,
 	GIVE,
+	HELP,
 	QUIT,
 	UNKNOWN
 };
@@ -23,12 +24,12 @@ enum class CommandType
 struct Command
 {
 	CommandType type = CommandType::UNKNOWN;
-	Direction direction = Direction::NORTH;   // only meaningful for GO
-	std::string target;                       // item name for TAKE, TAKE_FROM, DROP and PUT; NPC name for TALK
+	Direction direction = Direction::NORTH;   //GO
+	std::string target;                       // item name for TAKE, TAKE_FROM, DROP and PUT, NPC name for TALK
 	std::string container;                    // container name for PUT and TAKE_FROM
 };
 
-// Translates a line typed by the user into a Command 
+// Translates a line to commands
 class Parser
 {
 public:
@@ -39,4 +40,3 @@ private:
 	std::vector<std::string> split(const std::string& line) const;
 	bool parseDirection(const std::string& word, Direction& direction) const;
 };
-

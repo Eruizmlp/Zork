@@ -18,6 +18,10 @@ Command Parser::parse(const std::string& line) const
 	{
 		cmd.type = CommandType::QUIT;
 	}
+	else if (verb == "help" || verb == "h")
+	{
+		cmd.type = CommandType::HELP;
+	}
 	else if (verb == "look" || verb == "l")
 	{
 		cmd.type = CommandType::LOOK;
@@ -166,4 +170,3 @@ bool Parser::parseDirection(const std::string& word, Direction& direction) const
 
 	return false;
 }
-

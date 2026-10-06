@@ -1,11 +1,10 @@
 #pragma once
 
 #include "entity.h"
-#include "exit.h"
 
 class Room;
 
-
+// Anything that lives in a room and can move around: the player and the NPCs
 class Creature : public Entity
 {
 public:

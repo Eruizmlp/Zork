@@ -5,7 +5,7 @@ Room::Room(const std::string& name, const std::string& description, RoomType roo
 {
 }
 
-// Looks for an exit in this room going in the given direction 
+// Looks for an exit in this room going in the given direction
 Exit* Room::getExit(Direction direction) const
 {
 	for (Entity* entity : m_contains)

@@ -4,16 +4,29 @@
 
 class Boss;
 
-// A friendly coworker. Gives a tip and tells where the boss is and where he goes next
 class Friendly : public NPC
 {
 public:
 	Friendly(const std::string& name, const std::string& description,
-		const std::vector<Room*>& route, const std::string& tip, const Boss* boss);
+		const std::vector<Room*>& route, const std::string& tip, Boss* boss,
+		const Entity* wantedItem = nullptr, const std::string& secret = "");
 
 	std::string talk() const override;
+	bool receiveItem(Entity* item) override;
+
+protected:
+	// Knocks on the door and, after BATHROOM_PATIENCE turns, tells the boss someone is hiding
+	void onBathroomBlocked(Room* bathroom, int tries) override;
 
 private:
+	bool isNextTo(const Room* room) const;
+
 	const std::string m_tip;
-	const Boss* const m_boss;
+	static const int BATHROOM_PATIENCE = 3;
+
+	Boss* const m_boss;
+
+	const Entity* const m_wantedItem;
+	const std::string m_secret;
+	bool m_hasGift = false;
 };

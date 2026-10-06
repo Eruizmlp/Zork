@@ -12,9 +12,10 @@ enum class Direction
 	WEST
 };
 
-// Text shown to the player for a direction
 std::string directionToString(Direction direction);
 
+// A one-way passage from a source room to a destination room in a given direction.
+// A corridor that can be walked both ways is made of two exits.
 class Exit : public Entity
 {
 public:

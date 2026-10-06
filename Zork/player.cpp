@@ -9,8 +9,7 @@ Player::Player(const std::string& name, const std::string& description)
 {
 }
 
-
-//The player can only walk through an exit of the current room
+// The player can only walk through an exit of the current room
 MoveResult Player::move(Direction direction)
 {
 	Room* room = getCurrentRoom();
@@ -34,7 +33,6 @@ MoveResult Player::move(Direction direction)
 	return MoveResult::MOVED;
 }
 
-
 // Displays everything the player can see
 void Player::look() const
 {
@@ -48,9 +46,10 @@ void Player::look() const
 
 	for (const Entity* creature : room->getCreatures())
 	{
+		// Every creature in a room except the player is an NPC
 		if (creature != this)
 		{
-			std::cout << creature->getName() << " is here.\n";
+			std::cout << static_cast<const NPC*>(creature)->describePresence() << "\n";
 		}
 	}
 
@@ -96,6 +95,7 @@ void Player::inventory() const
 			std::cout << ")";
 		}
 	}
+
 	std::cout << "\n";
 }
 
@@ -165,7 +165,7 @@ bool Player::put(const std::string& itemName, const std::string& containerName)
 	return true;
 }
 
-// Takes an item out of a container 
+// Takes an item out of a container
 bool Player::takeFrom(const std::string& itemName, const std::string& containerName)
 {
 	Item* container = findContainer(containerName);

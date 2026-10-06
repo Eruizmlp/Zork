@@ -11,7 +11,8 @@ enum class EntityType
 	ITEM
 };
 
-
+// Base class of everything that exists in the game. Knows its type, name and
+// description, what it contains and where it is; moveTo() is the only way to move it.
 class Entity
 {
 public:
@@ -31,7 +32,6 @@ public:
 	bool contains(const Entity* entity) const;
 
 	Entity* findByName(const std::string& name, EntityType type) const;
-
 
 	bool moveTo(Entity* destination);
 

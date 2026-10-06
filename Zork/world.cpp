@@ -38,10 +38,33 @@ void World::runWorld()
 
 void World::printIntro() const
 {
-	std::cout << "It is Friday, 12:50. Your shift ends at 17:00, but you plan to leave at lunch time.\n"
-		<< "Grab your motorbike keys and get out of the building without being caught.\n"
-		<< "Type 'quit' to give up.\n\n";
-	m_player->look();
+	std::cout << "It's Friday. " << clockText(0) << ".\n"
+		<< "Your shift doesn't end until 17:00, but you've decided you're leaving early.\n"
+		<< "Lunch ends at " << clockText(MAX_TURNS)
+		<< ", and every action you take costs one minute.\n\n"
+		<< "There's just one problem: you've forgotten your motorbike keys.\n"
+		<< "Find them, get out of the building, and make sure nobody catches you before lunch is over.\n\n"
+		<< "Type 'inventory' to check your watch and see what you're carrying.\n" << "Type 'quit' if you decide it's not worth the risk.\n\n"
+		<< "Type help to know all the commands available.\n\n";
+
+}
+
+void World::printHelp() const
+{
+	std::cout
+		<< "\nAvailable commands:\n"
+		<< "  go <direction>              Move in a direction.\n"
+		<< "  look                        Look around the room.\n"
+		<< "  take <item>                 Pick up an item.\n"
+		<< "  take <item> from <object>   Take an item from a container.\n"
+		<< "  drop <item>                 Drop an item.\n"
+		<< "  put <item> in <object>      Put an item inside a container.\n"
+		<< "  inventory                   Check your inventory and watch.\n"
+		<< "  wait                        Wait for one minute.\n"
+		<< "  talk <person>               Talk to someone.\n"
+		<< "  give <item> to <person>     Give an item to someone.\n"
+		<< "  help						  Displays the different commands available.\n"
+		<< "  quit                        Give up and end the game.\n\n";
 }
 
 bool World::readLine(std::string& line) const
@@ -60,13 +83,18 @@ void World::playTurn(const std::string& line)
 		++m_currTurn;
 		update();
 
-		// The new room is described after the NPCs have moved 
+		// The new room is described after the NPCs have moved
 		if (command.type == CommandType::GO && !hasWon())
 		{
 			m_player->look();
 		}
 
 		checkNPCs();
+
+		if (!isGameOver())
+		{
+			printAtmosphere();
+		}
 	}
 }
 
@@ -82,7 +110,7 @@ void World::printEnding() const
 	}
 	else if (hasRunOutOfTurns())
 	{
-		std::cout << "\nToo late. Your boss spots you and asks for \"a quick favour\".\n";
+		std::cout << "\nIt's " << clockText(MAX_TURNS) << ", lunch is over. Your boss spots you and asks for \"a quick favour\".\n";
 	}
 }
 
@@ -110,6 +138,7 @@ bool World::tryAction(const Command& command)
 
 	case CommandType::INVENTORY:
 		m_player->inventory();
+		printTime();
 		return false;
 
 	case CommandType::WAIT:
@@ -134,6 +163,10 @@ bool World::tryAction(const Command& command)
 	case CommandType::TAKE_FROM:
 		return m_player->takeFrom(command.target, command.container);
 
+	case CommandType::HELP:
+		printHelp();
+		return false;
+
 	case CommandType::QUIT:
 		std::cout << "You sigh and go back to your desk. Maybe next Friday.\n";
 		m_gameOver = true;
@@ -141,6 +174,7 @@ bool World::tryAction(const Command& command)
 
 	case CommandType::UNKNOWN:
 		std::cout << "I don't understand that.\n";
+		printHelp();
 		return false;
 	}
 
@@ -166,14 +200,14 @@ void World::checkNPCs()
 {
 	if (isPlayerHidden())
 	{
-		for (const NPC* npc : m_npcs)
+		// Hiding works with everyone except the boss walking into the bathroom
+		if (m_boss->spottedPlayer(m_player))
 		{
-			const Room* room = npc->getCurrentRoom();
-			if (room != nullptr && room->getRoomType() == RoomType::RECEPTION)
-			{
-				std::cout << "You hear " << npc->getName() << " in the reception...\n";
-			}
+			m_boss->onPlayerSpotted(m_player);
+			return;
 		}
+
+		printReceptionSounds();
 		return;
 	}
 
@@ -184,6 +218,93 @@ void World::checkNPCs()
 			npc->onPlayerSpotted(m_player);
 		}
 	}
+}
+
+void World::printReceptionSounds() const
+{
+	std::string voices;
+	for (const NPC* npc : m_npcs)
+	{
+		const Room* room = npc->getCurrentRoom();
+		if (npc == m_boss || room == nullptr || room->getRoomType() != RoomType::RECEPTION)
+		{
+			continue;
+		}
+
+		if (!voices.empty())
+		{
+			voices += ", ";
+		}
+		voices += npc->getName();
+	}
+
+	const Room* bossRoom = m_boss->getCurrentRoom();
+	if (bossRoom != nullptr && bossRoom->getRoomType() == RoomType::RECEPTION)
+	{
+		if (m_boss->isAlerted())
+		{
+			std::cout << "You hear THE BOSS SHOUTING in the reception: \"WHERE IS EVERYONE?!\"\n";
+		}
+		else
+		{
+			std::cout << "You hear the boss in the reception...\n";
+		}
+	}
+
+	if (!voices.empty())
+	{
+		std::cout << "Voices in the reception: " << voices << ".\n";
+	}
+}
+
+void World::printAtmosphere() const
+{
+	if (!isPlayerHidden() && isBossNearby())
+	{
+		if (m_boss->isAlerted())
+		{
+			std::cout << "YOU HEAR THE BOSS STOMPING AROUND IN THE NEXT ROOM!\n";
+		}
+		else if (m_boss->getNextRoom() == m_player->getCurrentRoom())
+		{
+			std::cout << "You hear the boss's footsteps coming your way...\n";
+		}
+	}
+
+	const int minutesLeft = MAX_TURNS - m_currTurn;
+	if (minutesLeft == 10)
+	{
+		std::cout << "Half of the lunch break is gone.\n";
+	}
+	else if (minutesLeft == 5)
+	{
+		std::cout << "ONLY FIVE MINUTES LEFT! People are starting to come back from lunch.\n";
+	}
+	else if (minutesLeft == 2)
+	{
+		std::cout << "TWO MINUTES! YOU CAN ALREADY HEAR YOUR COWORKERS IN THE HALL!\n";
+	}
+}
+
+// True if the boss is in a room connected to the player's room
+bool World::isBossNearby() const
+{
+	const Room* playerRoom = m_player->getCurrentRoom();
+	const Room* bossRoom = m_boss->getCurrentRoom();
+	if (playerRoom == nullptr || bossRoom == nullptr)
+	{
+		return false;
+	}
+
+	for (const Exit* exit : playerRoom->getExits())
+	{
+		if (exit->getDestination() == bossRoom)
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool World::hasWon() const
@@ -208,11 +329,32 @@ bool World::hasRunOutOfTurns() const
 	return m_currTurn >= MAX_TURNS;
 }
 
+// Time on the clock after the given number of turns, as "13:45"
+std::string World::clockText(int turn) const
+{
+	const int minutes = START_MINUTES + turn;
+	const int hour = minutes / 60;
+	const int minute = minutes % 60;
+
+	std::string text = std::to_string(hour) + ":";
+	if (minute < 10)
+	{
+		text += "0";
+	}
+	return text + std::to_string(minute);
+}
+
+// Shows the current time and how many minutes are left before lunch ends
+void World::printTime() const
+{
+	std::cout << "Your watch says " << clockText(m_currTurn) << ". Lunch ends at " << clockText(MAX_TURNS)
+		<< " (" << MAX_TURNS - m_currTurn << " minutes left).\n";
+}
+
 bool World::isGameOver() const
 {
 	return m_gameOver || m_boss->hasCaughtPlayer() || hasWon() || hasRunOutOfTurns();
 }
-
 void World::createWorld()
 {
 	// Rooms
@@ -235,29 +377,45 @@ void World::createWorld()
 	m_entities.push_back(m_player);
 	m_player->moveTo(office);
 
-	// Items (names in lowercase because of the parser)
+	// Items (names in lowercase, like everything the player types)
 	Item* badge = addItem("badge", "Your access badge. It opens the glass doors.", m_player);
-	addItem("backpack", "Your backpack, hanging from your chair.", office, true);
+	Item* backpack = addItem("backpack", "Your backpack, hanging from your chair.", office, true);
 	addItem("chocolate", "A chocolate bar. Some people would do anything for one.", cafeteria);
+	Item* coffee = addItem("coffee", "A cup of coffee, still hot.", cafeteria);
 	Item* jacket = addItem("jacket", "Your jacket. You hung it in the bathroom this morning.", bathroom, true);
 	m_keys = addItem("keys", "Your motorbike keys.", jacket);
 
+	// NPC routes: one room per turn 
+	const std::vector<Room*> bossRoute = { cafeteria, cafeteria, cafeteria, reception,
+		entrance, entrance, entrance, reception, office, office, reception };
+	const std::vector<Room*> bossAlertRoute = { reception, entrance, entrance, entrance, reception };
+	const std::vector<Room*> marcRoute = { office, office, reception, reception };
+	const std::vector<Room*> nuriaRoute = { cafeteria, cafeteria, reception, cafeteria };
+	const std::vector<Room*> pabloRoute = { reception, bathroom, reception, office, reception, cafeteria, cafeteria };
+
 	// NPCs
 	m_boss = new Boss("boss", "Your boss, holding a coffee and looking for someone to give work to.",
-		{ cafeteria, cafeteria, reception, office, office, office, reception },
-		{ reception, entrance, entrance, entrance, reception });
+		bossRoute, bossAlertRoute);
 	addNPC(m_boss, cafeteria);
 
 	addNPC(new Snitch("marc", "A coworker who loves telling the boss what everyone does.",
-		{ office, office, reception, reception }, m_boss, m_keys), office);
+		marcRoute, m_boss, m_keys), office);
+
+	addNPC(new Snitch("nuria", "A coworker who notices everything people carry around.",
+		nuriaRoute, m_boss, backpack), cafeteria);
 
 	addNPC(new Friendly("marta", "The receptionist. She knows everything and tells nobody.",
-		{ reception }, "Looking for your keys? You hung your jacket in the bathroom this morning.",
+		{ reception }, "Looking for your keys? You hung your jacket in the bathroom this morning. And careful: after his coffee, the boss always goes out to the entrance for a smoke.",
 		m_boss), reception);
 
 	addNPC(new Friendly("laura", "A coworker eating a salad. She can't stand Marc.",
 		{ cafeteria }, "Marc tells the boss everything he sees... but he'd sell his soul for something sweet.",
 		m_boss), cafeteria);
+
+	addNPC(new Friendly("pablo", "The IT guy. He looks like he hasn't slept in days.",
+		pabloRoute, "I'd kill for a coffee right now...", m_boss,
+		coffee, "Thanks! Between us: when someone snitches, the boss guards the entrance for a while and then gives up. Hide in the bathroom and wait."),
+		reception);
 
 	// Exits
 	addExit("corridor", "A corridor leads south to reception.", Direction::SOUTH, office, reception);
@@ -306,5 +464,3 @@ void World::addExit(const std::string& name, const std::string& description,
 	m_entities.push_back(exit);
 	exit->moveTo(source);
 }
-
-

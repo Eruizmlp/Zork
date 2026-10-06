@@ -21,7 +21,6 @@ void Snitch::onPlayerSpotted(const Player* player)
 	m_boss->alert();
 }
 
-
 std::string Snitch::talk() const
 {
 	if (m_isBribed)

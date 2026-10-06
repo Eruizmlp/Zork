@@ -18,7 +18,12 @@ bool NPC::spottedPlayer(const Player* player) const
 }
 
 void NPC::onPlayerSpotted(const Player* /*player*/)
-{	
+{
+}
+
+std::string NPC::describePresence() const
+{
+	return getName() + " is here.";
 }
 
 std::string NPC::talk() const
@@ -46,7 +51,8 @@ void NPC::update()
 	followRoute();
 }
 
-// Goes to the next room of the route, back to the first one after the last
+// Goes to the next room of the route, back to the first one after the last.
+// If the next room is the bathroom and someone is inside, the NPC waits at the door.
 void NPC::followRoute()
 {
 	if (m_route.empty())
@@ -54,6 +60,19 @@ void NPC::followRoute()
 		return;
 	}
 
+	Room* nextRoom = m_route[(m_routeStep + 1) % m_route.size()];
+	if (nextRoom->getRoomType() == RoomType::BATHROOM && !nextRoom->getCreatures().empty())
+	{
+		++m_bathroomTries;
+		onBathroomBlocked(nextRoom, m_bathroomTries);
+		return;
+	}
+
+	m_bathroomTries = 0;
 	m_routeStep = (m_routeStep + 1) % m_route.size();
-	moveTo(m_route[m_routeStep]);
+	moveTo(nextRoom);
+}
+
+void NPC::onBathroomBlocked(Room* /*bathroom*/, int /*tries*/)
+{
 }
