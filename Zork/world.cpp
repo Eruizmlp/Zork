@@ -34,6 +34,9 @@ void World::runWorld()
 	}
 
 	printEnding();
+
+	std::cout << "\nPress Enter to exit...";
+	std::cin.get();
 }
 
 void World::printIntro() const
