@@ -4,7 +4,7 @@
 
 class Boss;
 
-// A coworker on the player's side: gives a tip and tells where the boss is and where he goes next.
+
 class Friendly : public NPC
 {
 public:

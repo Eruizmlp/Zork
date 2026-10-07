@@ -38,33 +38,36 @@ void World::runWorld()
 
 void World::printIntro() const
 {
-	std::cout << "It's Friday. " << clockText(0) << ".\n"
-		<< "Your shift doesn't end until 17:00, but you've decided you're leaving early.\n"
-		<< "Lunch ends at " << clockText(MAX_TURNS)
-		<< ", and every action you take costs one minute.\n\n"
-		<< "There's just one problem: you notice you are not carrying your car keys.\n"
-		<< "Find them, get out of the building, and make sure nobody catches you before lunch is over.\n\n"
-		<< "Type 'inventory' to check your watch and see what you're carrying.\n" << "Type 'quit' if you decide it's not worth the risk.\n\n"
-		<< "Type help to know all the commands available.\n\n";
-
+	std::cout
+		<< "==============================================\n"
+		<< "              ESCAPE THE OFFICE\n"
+		<< "==============================================\n\n"
+		<< "It's Friday, " << clockText(0) << ".\n"
+		<< "Your shift doesn't end until 17:00, but you've decided to leave early.\n"
+		<< "Lunch ends at " << clockText(MAX_TURNS) << ", and every action you take costs one minute.\n\n"
+		<< "There's just one problem: you're not carrying your motorbike keys.\n"
+		<< "Find them and get out of the building before lunch is over,\n"
+		<< "without anybody catching you.\n\n"
+		<< "Type 'look' to see where you are and 'help' to see all the commands.\n";
 }
 
 void World::printHelp() const
 {
 	std::cout
 		<< "\nAvailable commands:\n"
-		<< "  go <direction>              Move in a direction.\n"
-		<< "  look                        Look around the room.\n"
-		<< "  take <item>                 Pick up an item.\n"
-		<< "  take <item> from <object>   Take an item from a container.\n"
-		<< "  drop <item>                 Drop an item.\n"
-		<< "  put <item> in <object>      Put an item inside a container.\n"
-		<< "  inventory                   Check your inventory and watch.\n"
-		<< "  wait                        Wait for one minute.\n"
-		<< "  talk <person>               Talk to someone.\n"
-		<< "  give <item> to <person>     Give an item to someone.\n"
-		<< "  help						  Displays the different commands available.\n"
-		<< "  quit                        Give up and end the game.\n\n";
+		<< "  go <direction>               Move north, south, east or west (or just n, s, e, w).\n"
+		<< "  look                         Look around the room.\n"
+		<< "  inventory                    Check what you carry and your watch.\n"
+		<< "  take <item>                  Pick up an item.\n"
+		<< "  take <item> from <object>    Take an item out of a container.\n"
+		<< "  drop <item>                  Leave an item in the room.\n"
+		<< "  put <item> in <object>       Put an item inside a container.\n"
+		<< "  talk <person>                Talk to someone.\n"
+		<< "  give <item> to <person>      Give an item to someone.\n"
+		<< "  wait                         Wait for one minute (only in the bathroom).\n"
+		<< "  help                         Show this list.\n"
+		<< "  quit                         Give up and end the game.\n\n"
+		<< "Looking, checking your inventory, talking and asking for help don't cost any time.\n";
 }
 
 bool World::readLine(std::string& line) const

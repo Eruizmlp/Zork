@@ -42,13 +42,20 @@ void Player::look() const
 		return;
 	}
 
-	std::cout << room->getName() << "\n" << room->getDescription() << "\n";
+	std::cout << "\n--- " << room->getName() << " ---\n"
+		<< room->getDescription() << "\n";
 
+	// Every creature in a room except the player is an NPC
+	bool someoneHere = false;
 	for (const Entity* creature : room->getCreatures())
 	{
-		// Every creature in a room except the player is an NPC
 		if (creature != this)
 		{
+			if (!someoneHere)
+			{
+				std::cout << "\n";
+				someoneHere = true;
+			}
 			std::cout << static_cast<const NPC*>(creature)->describePresence() << "\n";
 		}
 	}
@@ -56,21 +63,26 @@ void Player::look() const
 	const std::vector<Entity*> items = room->getItems();
 	if (!items.empty())
 	{
-		std::cout << "You see:";
-		for (const Entity* item : items)
+		std::cout << "\nYou see: ";
+		for (size_t i = 0; i < items.size(); ++i)
 		{
-			std::cout << " " << item->getName();
+			if (i > 0)
+			{
+				std::cout << ", ";
+			}
+			std::cout << items[i]->getName();
 		}
-		std::cout << "\n";
+		std::cout << ".\n";
 	}
 
+	std::cout << "\nExits:\n";
 	for (const Exit* exit : room->getExits())
 	{
-		std::cout << exit->getDescription() << " (" << directionToString(exit->getDirection()) << ")\n";
+		std::cout << "  " << directionToString(exit->getDirection()) << ": " << exit->getDescription() << "\n";
 	}
 }
 
-// Lists what the player carries, including what is inside each container
+// Lists what the player carries, one item per line, including what is inside each container
 void Player::inventory() const
 {
 	if (m_contains.empty())
@@ -79,24 +91,29 @@ void Player::inventory() const
 		return;
 	}
 
-	std::cout << "You are carrying:";
+	std::cout << "You are carrying:\n";
 	for (const Entity* item : m_contains)
 	{
-		std::cout << " " << item->getName();
+		std::cout << "  - " << item->getName();
 
 		const std::list<Entity*>& inside = item->getContains();
 		if (!inside.empty())
 		{
-			std::cout << " (contains:";
+			std::cout << " (inside: ";
+			bool first = true;
 			for (const Entity* content : inside)
 			{
-				std::cout << " " << content->getName();
+				if (!first)
+				{
+					std::cout << ", ";
+				}
+				std::cout << content->getName();
+				first = false;
 			}
 			std::cout << ")";
 		}
+		std::cout << "\n";
 	}
-
-	std::cout << "\n";
 }
 
 // Picks up an item (in the current room)
@@ -234,7 +251,7 @@ void Player::talkTo(const std::string& npcName)
 		return;
 	}
 
-	std::cout << npc->getName() << ": \"" << npc->talk() << "\"\n";
+	printSpeech(npc);
 	npc->onTalkedTo(this);
 }
 
@@ -262,8 +279,7 @@ bool Player::give(const std::string& itemName, const std::string& npcName)
 	}
 
 	std::cout << "You give the " << itemName << " to " << npc->getName() << ".\n";
-
-	std::cout << npc->getName() << ": \"" << npc->talk() << "\"\n";
+	printSpeech(npc);
 	return true;
 }
 
@@ -283,6 +299,41 @@ NPC* Player::findNPCHere(const std::string& npcName) const
 	}
 
 	return static_cast<NPC*>(found);
+}
+
+// Shows what an NPC says, split in lines of at most LINE_WIDTH characters so it is easy to read
+void Player::printSpeech(const NPC* npc) const
+{
+	std::cout << "\n" << npc->getName() << " says:\n";
+
+	const std::string text = "\"" + npc->talk() + "\"";
+	std::string line;
+	std::string word;
+
+	for (size_t i = 0; i <= text.size(); ++i)
+	{
+		if (i < text.size() && text[i] != ' ')
+		{
+			word += text[i];
+			continue;
+		}
+
+		// A word has ended: start a new line if it does not fit in the current one
+		if (!line.empty() && line.size() + 1 + word.size() > LINE_WIDTH)
+		{
+			std::cout << "  " << line << "\n";
+			line.clear();
+		}
+
+		if (!line.empty())
+		{
+			line += " ";
+		}
+		line += word;
+		word.clear();
+	}
+
+	std::cout << "  " << line << "\n";
 }
 
 void Player::update()

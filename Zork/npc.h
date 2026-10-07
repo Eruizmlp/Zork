@@ -11,7 +11,6 @@ class Room;
 class NPC : public Creature
 {
 public:
-	// favoriteItem: what this NPC likes the most (nullptr if nothing)
 	NPC(const std::string& name, const std::string& description,
 		const std::vector<Room*>& route, Entity* favoriteItem = nullptr);
 

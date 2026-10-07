@@ -14,7 +14,7 @@ enum class Direction
 
 std::string directionToString(Direction direction);
 
-// A one-way passage from a source room to a destination room in a given direction.
+
 class Exit : public Entity
 {
 public:

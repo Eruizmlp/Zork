@@ -42,5 +42,9 @@ public:
 private:
 	Item* findContainer(const std::string& containerName) const;
 	NPC* findNPCHere(const std::string& npcName) const;
+
+	// Maximum length of a line when showing what an NPC says
+	static const size_t LINE_WIDTH = 72;
+	void printSpeech(const NPC* npc) const;
 };
 
